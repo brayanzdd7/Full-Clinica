@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historial Médico — Clínica Médica</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="auth.js"></script>
+<style>
+  :root{--teal:#0fa8a0;--teal-dark:#0a7a75;--teal-glow:rgba(15,168,160,0.2);--bg:#080f14;--surface:#0e1a22;--surface2:#152130;--surface3:#1c2e3e;--border:rgba(15,168,160,0.15);--border2:rgba(255,255,255,0.06);--text:#e8f4f3;--muted:#6a9a96;--sidebar-w:240px;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;overflow:hidden;}
+  .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;}
+  .sidebar-logo{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .logo-box{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .logo-text{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;line-height:1.2;}
+  .logo-text small{display:block;font-size:0.65rem;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400;}
+  .nav-section{padding:1rem 0.75rem 0.5rem;}
+  .nav-label{font-size:0.65rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:0 0.75rem;margin-bottom:0.4rem;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:0.65rem 0.75rem;border-radius:10px;cursor:pointer;transition:all 0.2s;font-size:0.88rem;color:var(--muted);text-decoration:none;margin-bottom:2px;}
+  .nav-item:hover{background:var(--surface2);color:var(--text);}
+  .nav-item.active{background:rgba(15,168,160,0.15);color:var(--teal);}
+  .nav-item svg{width:18px;height:18px;flex-shrink:0;}
+  .sidebar-footer{margin-top:auto;padding:1rem;border-top:1px solid var(--border);}
+  .user-card{display:flex;align-items:center;gap:10px;padding:0.6rem;border-radius:10px;background:var(--surface2);}
+  .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal-dark));display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:600;flex-shrink:0;}
+  .user-info{flex:1;min-width:0;}
+  .user-name{font-size:0.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .user-role{font-size:0.7rem;color:var(--teal);}
+  .btn-logout{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:6px;transition:all 0.2s;}
+  .btn-logout:hover{color:#f87171;}
+  .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+  .topbar{padding:1.2rem 2rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:50;}
+  .page-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;}
+  .btn-back{background:none;border:1px solid var(--border2);color:var(--muted);padding:0.5rem 1rem;border-radius:10px;cursor:pointer;font-size:0.85rem;transition:all 0.2s;text-decoration:none;}
+  .btn-back:hover{border-color:var(--teal);color:var(--teal);}
+  .content{padding:2rem;flex:1;overflow-y:auto;}
+
+  /* Patient card */
+  .patient-card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:1.5rem;display:flex;align-items:center;gap:1.2rem;margin-bottom:1.5rem;position:relative;overflow:hidden;}
+  .patient-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--teal),transparent);}
+  .pat-avatar{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--teal-dark),#0a4060);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+  .pat-name{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;}
+  .pat-meta{font-size:0.8rem;color:var(--muted);margin-top:4px;}
+  .pat-badges{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:6px;}
+  .pat-badge{font-size:0.72rem;padding:3px 10px;border-radius:20px;background:var(--surface2);border:1px solid var(--border2);}
+  .pat-badge.teal{background:rgba(15,168,160,0.1);border-color:var(--border);color:var(--teal);}
+
+  /* Stats row */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+  .stat-card{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:1rem 1.2rem;}
+  .stat-label{font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+  .stat-val{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:700;margin-top:4px;color:var(--teal);}
+  .stat-sub{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+
+  /* Tabs */
+  .tabs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:12px;margin-bottom:1.5rem;width:fit-content;}
+  .tab-btn{background:none;border:none;color:var(--muted);padding:0.5rem 1.1rem;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+  .tab-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.3);}
+
+  /* Panel */
+  .panel{background:var(--surface);border:1px solid var(--border2);border-radius:16px;overflow:hidden;}
+
+  /* Antecedentes */
+  .ante-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding:1.5rem;}
+  .ante-item{background:var(--surface2);border-radius:12px;padding:1rem;}
+  .ante-label{font-size:0.68rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:0.4rem;}
+  .ante-val{font-size:0.85rem;line-height:1.5;}
+  .ante-empty{color:var(--muted);font-style:italic;}
+
+  /* Timeline */
+  .timeline{padding:1.5rem;}
+  .tl-item{display:flex;gap:1rem;margin-bottom:1.2rem;animation:fadeIn 0.3s ease both;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .tl-line{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+  .tl-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;}
+  .tl-dot.cita{background:rgba(15,168,160,0.15);border:1px solid var(--teal);}
+  .tl-dot.receta{background:rgba(168,85,247,0.15);border:1px solid #a855f7;}
+  .tl-dot.pago{background:rgba(52,211,153,0.15);border:1px solid #34d399;}
+  .tl-dot.factura{background:rgba(59,130,246,0.15);border:1px solid #60a5fa;}
+  .tl-connector{flex:1;width:1px;background:var(--border2);margin:4px 0;}
+  .tl-body{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:1rem;margin-bottom:0;}
+  .tl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px;}
+  .tl-fecha{font-size:0.75rem;color:var(--muted);}
+  .tl-tipo{font-size:0.68rem;padding:2px 8px;border-radius:10px;}
+  .tl-cita{background:rgba(15,168,160,0.1);color:var(--teal);}
+  .tl-receta{background:rgba(168,85,247,0.1);color:#a855f7;}
+  .tl-pago{background:rgba(52,211,153,0.1);color:#34d399;}
+  .tl-factura{background:rgba(59,130,246,0.1);color:#60a5fa;}
+  .tl-title{font-size:0.9rem;font-weight:500;margin-bottom:4px;}
+  .tl-sub{font-size:0.78rem;color:var(--muted);}
+  .badge{padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:500;display:inline-block;}
+  .badge-green{background:rgba(52,211,153,0.15);color:#34d399;}
+  .badge-yellow{background:rgba(245,158,11,0.15);color:#f59e0b;}
+  .badge-red{background:rgba(248,113,113,0.15);color:#f87171;}
+  .badge-blue{background:rgba(59,130,246,0.15);color:#60a5fa;}
+  .badge-teal{background:rgba(15,168,160,0.15);color:var(--teal);}
+
+  /* Receta detalle */
+  .med-list{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:8px;}
+  .med-tag{background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.2);color:#c084fc;font-size:0.75rem;padding:3px 10px;border-radius:8px;}
+
+  .empty-state{text-align:center;padding:3rem;color:var(--muted);}
+  .empty-state .icon{font-size:2.5rem;margin-bottom:0.75rem;}
+  ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar"></aside>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="pageTitle">Historial Médico</div>
+    </div>
+    <a href="pacientes.html" class="btn-back" id="btnBack">← Volver</a>
+  </div>
+
+  <div class="content" id="mainContent">
+    <div style="color:var(--muted);padding:3rem;text-align:center">Cargando historial...</div>
+  </div>
+</main>
+
+<script>
+AUTH.guard();
+AUTH.initSidebar('');
+
+const API = 'http://localhost:5190/api';
+const headers = AUTH.headers();
+
+// Obtener pacienteId desde URL o del propio usuario
+const params = new URLSearchParams(window.location.search);
+let pacienteId = parseInt(params.get('id'));
+if (!pacienteId && AUTH.esPaciente()) pacienteId = parseInt(AUTH.pacienteId());
+
+if (!pacienteId) {
+  document.getElementById('mainContent').innerHTML =
+    `<div class="empty-state"><div class="icon">⚠️</div><p>No se especificó un paciente.</p></div>`;
+} else {
+  if (AUTH.esPaciente()) document.getElementById('btnBack').href = 'dashboard.html';
+  load();
+}
+
+async function load() {
+  try {
+    const [pacRes, histRes] = await Promise.all([
+      fetch(`${API}/pacientes/${pacienteId}`, {headers}),
+      fetch(`${API}/pacientes/${pacienteId}/historial`, {headers})
+    ]);
+
+    if (!pacRes.ok || !histRes.ok) throw new Error('No autorizado o paciente no encontrado.');
+    const paciente = await pacRes.json();
+    const data     = await histRes.json();
+
+    render(paciente, data);
+  } catch(e) {
+    document.getElementById('mainContent').innerHTML =
+      `<div class="empty-state"><div class="icon">⚠️</div><p>Error: ${e.message}</p></div>`;
+  }
+}
+
+function render(paciente, data) {
+  const nombre = `${paciente.usuario?.nombre||''} ${paciente.usuario?.apellido||''}`.trim();
+  document.getElementById('pageTitle').textContent = `Historial — ${nombre}`;
+
+  const edad = paciente.fechaNacimiento
+    ? `${Math.floor((Date.now() - new Date(paciente.fechaNacimiento)) / 31557600000)} años`
+    : '—';
+
+  const { citas=[], recetas=[], pagos=[], facturas=[], historiaClinica, resumen={} } = data;
+
+  document.getElementById('mainContent').innerHTML = `
+
+    <!-- Tarjeta paciente -->
+    <div class="patient-card">
+      <div class="pat-avatar">👤</div>
+      <div>
+        <div class="pat-name">${nombre}</div>
+        <div class="pat-meta">${paciente.usuario?.email||'—'} · ${paciente.telefono||'Sin teléfono'}</div>
+        <div class="pat-badges">
+          ${paciente.tipoSangre ? `<span class="pat-badge teal">🩸 ${paciente.tipoSangre}</span>` : ''}
+          ${paciente.genero     ? `<span class="pat-badge">${paciente.genero}</span>` : ''}
+          <span class="pat-badge">${edad}</span>
+          ${paciente.alergias   ? `<span class="pat-badge" style="color:#f87171;border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.08)">⚠️ ${paciente.alergias}</span>` : ''}
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total Citas</div>
+        <div class="stat-val">${resumen.totalCitas||0}</div>
+        <div class="stat-sub">${citas.filter(c=>c.estado==='Completada').length} completadas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Recetas</div>
+        <div class="stat-val">${resumen.totalRecetas||0}</div>
+        <div class="stat-sub">emitidas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Pagado</div>
+        <div class="stat-val" style="font-size:1.2rem">Q ${(resumen.totalPagado||0).toFixed(2)}</div>
+        <div class="stat-sub">${pagos.length} transacciones</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Facturas</div>
+        <div class="stat-val">${resumen.totalFacturas||0}</div>
+        <div class="stat-sub">emitidas</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('timeline',this)">📋 Historial</button>
+      <button class="tab-btn" onclick="showTab('citas',this)">📅 Citas</button>
+      <button class="tab-btn" onclick="showTab('recetas',this)">💊 Recetas</button>
+      <button class="tab-btn" onclick="showTab('pagos',this)">💳 Pagos</button>
+      <button class="tab-btn" onclick="showTab('antecedentes',this)">📄 Antecedentes</button>
+    </div>
+
+    <!-- Tab: Timeline -->
+    <div id="tab-timeline">
+      ${renderTimeline(citas, recetas, pagos, facturas)}
+    </div>
+
+    <!-- Tab: Citas -->
+    <div id="tab-citas" style="display:none">
+      ${renderCitas(citas)}
+    </div>
+
+    <!-- Tab: Recetas -->
+    <div id="tab-recetas" style="display:none">
+      ${renderRecetas(recetas)}
+    </div>
+
+    <!-- Tab: Pagos -->
+    <div id="tab-pagos" style="display:none">
+      ${renderPagos(pagos, facturas)}
+    </div>
+
+    <!-- Tab: Antecedentes -->
+    <div id="tab-antecedentes" style="display:none">
+      ${renderAntecedentes(historiaClinica, paciente)}
+    </div>
+  `;
+}
+
+function showTab(name, btn) {
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).style.display = 'block';
+  btn.classList.add('active');
+}
+
+// ── Timeline ────────────────────────────────────────────────────────────────
+function renderTimeline(citas, recetas, pagos, facturas) {
+  const events = [
+    ...citas.map(c    => ({ fecha: c.fecha,    tipo: 'cita',    data: c })),
+    ...recetas.map(r  => ({ fecha: r.fecha,    tipo: 'receta',  data: r })),
+    ...pagos.map(p    => ({ fecha: p.fecha,    tipo: 'pago',    data: p })),
+    ...facturas.map(f => ({ fecha: f.fecha,    tipo: 'factura', data: f })),
+  ].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
+  if (!events.length) return `<div class="empty-state"><div class="icon">📋</div><p>Sin eventos registrados</p></div>`;
+
+  return `<div class="timeline">${events.map((ev, i) => {
+    const isLast = i === events.length - 1;
+    switch(ev.tipo) {
+      case 'cita': return tlCita(ev.data, isLast);
+      case 'receta': return tlReceta(ev.data, isLast);
+      case 'pago': return tlPago(ev.data, isLast);
+      case 'factura': return tlFactura(ev.data, isLast);
+      default: return '';
+    }
+  }).join('')}</div>`;
+}
+
+function tlCita(c, isLast) {
+  const badgeCls = c.estado==='Completada'?'badge-green':c.estado==='Cancelada'?'badge-red':c.estado==='Pendiente'?'badge-yellow':'badge-teal';
+  return `<div class="tl-item">
+    <div class="tl-line">
+      <div class="tl-dot cita">📅</div>
+      ${isLast ? '' : '<div class="tl-connector"></div>'}
+    </div>
+    <div class="tl-body">
+      <div class="tl-header">
+        <span class="tl-tipo tl-cita">Cita</span>
+        <span class="tl-fecha">${fmt(c.fecha)}</span>
+      </div>
+      <div class="tl-title">Dr. ${c.doctor?.apellido||'—'} — ${c.doctor?.especialidad||'—'}</div>
+      <div class="tl-sub">${c.motivo||'Sin motivo registrado'}</div>
+      <span class="badge ${badgeCls}" style="margin-top:6px;display:inline-block">${c.estado}</span>
+    </div>
+  </div>`;
+}
+
+function tlReceta(r, isLast) {
+  const meds = r.medicamentos || [];
+  return `<div class="tl-item">
+    <div class="tl-line">
+      <div class="tl-dot receta">💊</div>
+      ${isLast ? '' : '<div class="tl-connector"></div>'}
+    </div>
+    <div class="tl-body">
+      <div class="tl-header">
+        <span class="tl-tipo tl-receta">Receta</span>
+        <span class="tl-fecha">${fmt(r.fecha)}</span>
+      </div>
+      <div class="tl-title">Dr. ${r.doctor?.nombre||'—'} ${r.doctor?.apellido||''}</div>
+      ${r.observaciones ? `<div class="tl-sub">${r.observaciones}</div>` : ''}
+      ${meds.length ? `<div class="med-list">${meds.map(m =>
+        `<span class="med-tag">${m.nombre} ${m.dosis||''}</span>`).join('')}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function tlPago(p, isLast) {
+  return `<div class="tl-item">
+    <div class="tl-line">
+      <div class="tl-dot pago">💳</div>
+      ${isLast ? '' : '<div class="tl-connector"></div>'}
+    </div>
+    <div class="tl-body">
+      <div class="tl-header">
+        <span class="tl-tipo tl-pago">Pago</span>
+        <span class="tl-fecha">${fmt(p.fecha)}</span>
+      </div>
+      <div class="tl-title">Q ${(p.total||0).toFixed(2)} — ${p.concepto||'Pago'}</div>
+      <div class="tl-sub">${p.metodo||'—'} · ${p.estado||'—'}</div>
+    </div>
+  </div>`;
+}
+
+function tlFactura(f, isLast) {
+  return `<div class="tl-item">
+    <div class="tl-line">
+      <div class="tl-dot factura">🧾</div>
+      ${isLast ? '' : '<div class="tl-connector"></div>'}
+    </div>
+    <div class="tl-body">
+      <div class="tl-header">
+        <span class="tl-tipo tl-factura">Factura</span>
+        <span class="tl-fecha">${fmt(f.fecha)}</span>
+      </div>
+      <div class="tl-title">${f.numeroFactura||'—'} — Q ${(f.total||0).toFixed(2)}</div>
+      <div class="tl-sub">${f.concepto||'—'}</div>
+    </div>
+  </div>`;
+}
+
+// ── Citas ───────────────────────────────────────────────────────────────────
+function renderCitas(citas) {
+  if (!citas.length) return `<div class="empty-state"><div class="icon">📅</div><p>Sin citas registradas</p></div>`;
+  return `<div class="panel"><table style="width:100%;border-collapse:collapse">
+    <thead><tr>
+      <th style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;border-bottom:1px solid var(--border2);text-align:left">Fecha</th>
+      <th style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;border-bottom:1px solid var(--border2);text-align:left">Doctor</th>
+      <th style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;border-bottom:1px solid var(--border2);text-align:left">Especialidad</th>
+      <th style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;border-bottom:1px solid var(--border2);text-align:left">Motivo</th>
+      <th style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;border-bottom:1px solid var(--border2);text-align:left">Estado</th>
+    </tr></thead>
+    <tbody>${citas.map(c => {
+      const bc = c.estado==='Completada'?'badge-green':c.estado==='Cancelada'?'badge-red':c.estado==='Pendiente'?'badge-yellow':'badge-teal';
+      return `<tr style="border-bottom:1px solid rgba(255,255,255,0.03)">
+        <td style="padding:0.85rem 1rem;font-size:0.82rem">${fmt(c.fecha)}</td>
+        <td style="padding:0.85rem 1rem;font-size:0.85rem">Dr. ${c.doctor?.nombre||''} ${c.doctor?.apellido||'—'}</td>
+        <td style="padding:0.85rem 1rem;font-size:0.82rem;color:var(--teal)">${c.doctor?.especialidad||'—'}</td>
+        <td style="padding:0.85rem 1rem;font-size:0.82rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.motivo||'—'}</td>
+        <td style="padding:0.85rem 1rem"><span class="badge ${bc}">${c.estado}</span></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+// ── Recetas ─────────────────────────────────────────────────────────────────
+function renderRecetas(recetas) {
+  if (!recetas.length) return `<div class="empty-state"><div class="icon">💊</div><p>Sin recetas registradas</p></div>`;
+  return recetas.map(r => `
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:1.2rem;margin-bottom:0.75rem">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        <div>
+          <div style="font-weight:500;font-size:0.9rem">Dr. ${r.doctor?.nombre||''} ${r.doctor?.apellido||'—'}</div>
+          <div style="font-size:0.75rem;color:var(--muted)">${fmt(r.fecha)}</div>
+        </div>
+        <span class="badge badge-teal">Receta #${r.recetaId}</span>
+      </div>
+      ${r.observaciones ? `<div style="font-size:0.82rem;color:var(--muted);margin-bottom:8px">${r.observaciones}</div>` : ''}
+      <div class="med-list">
+        ${(r.medicamentos||[]).map(m =>
+          `<span class="med-tag" title="Dosis: ${m.dosis||'—'} · ${m.frecuencia||'—'} · ${m.duracion||'—'}">${m.nombre} ${m.dosis||''}</span>`
+        ).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// ── Pagos ───────────────────────────────────────────────────────────────────
+function renderPagos(pagos, facturas) {
+  const html = [];
+  if (pagos.length) {
+    html.push(`<h3 style="font-family:'Syne',sans-serif;font-size:0.9rem;margin-bottom:0.75rem;color:var(--muted)">Pagos</h3>`);
+    html.push(`<div class="panel" style="margin-bottom:1.5rem"><table style="width:100%;border-collapse:collapse">
+      <thead><tr>
+        <th style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;border-bottom:1px solid var(--border2);text-align:left">Fecha</th>
+        <th style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;border-bottom:1px solid var(--border2);text-align:left">Concepto</th>
+        <th style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;border-bottom:1px solid var(--border2);text-align:left">Método</th>
+        <th style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;border-bottom:1px solid var(--border2);text-align:right">Total</th>
+        <th style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;border-bottom:1px solid var(--border2);text-align:left">Estado</th>
+      </tr></thead>
+      <tbody>${pagos.map(p => `<tr style="border-bottom:1px solid rgba(255,255,255,0.03)">
+        <td style="padding:0.85rem 1rem;font-size:0.82rem">${fmt(p.fecha)}</td>
+        <td style="padding:0.85rem 1rem;font-size:0.82rem">${p.concepto||'—'}</td>
+        <td style="padding:0.85rem 1rem;font-size:0.82rem">${p.metodo||'—'}</td>
+        <td style="padding:0.85rem 1rem;font-size:0.85rem;text-align:right;color:#34d399">Q ${(p.total||0).toFixed(2)}</td>
+        <td style="padding:0.85rem 1rem"><span class="badge badge-green">${p.estado||'—'}</span></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`);
+  }
+  if (facturas.length) {
+    html.push(`<h3 style="font-family:'Syne',sans-serif;font-size:0.9rem;margin-bottom:0.75rem;color:var(--muted)">Facturas</h3>`);
+    html.push(`<div class="panel"><table style="width:100%;border-collapse:collapse">
+      <thead><tr>
+        <th style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;border-bottom:1px solid var(--border2);text-align:left">Nº Factura</th>
+        <th style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;border-bottom:1px solid var(--border2);text-align:left">Fecha</th>
+        <th style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;border-bottom:1px solid var(--border2);text-align:left">Concepto</th>
+        <th style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;border-bottom:1px solid var(--border2);text-align:right">Total</th>
+      </tr></thead>
+      <tbody>${facturas.map(f => `<tr style="border-bottom:1px solid rgba(255,255,255,0.03)">
+        <td style="padding:0.85rem 1rem;font-size:0.85rem;color:var(--teal)">${f.numeroFactura||'—'}</td>
+        <td style="padding:0.85rem 1rem;font-size:0.82rem">${fmt(f.fecha)}</td>
+        <td style="padding:0.85rem 1rem;font-size:0.82rem">${f.concepto||'—'}</td>
+        <td style="padding:0.85rem 1rem;font-size:0.85rem;text-align:right;color:#34d399">Q ${(f.total||0).toFixed(2)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`);
+  }
+  if (!html.length) return `<div class="empty-state"><div class="icon">💳</div><p>Sin pagos registrados</p></div>`;
+  return html.join('');
+}
+
+// ── Antecedentes ─────────────────────────────────────────────────────────────
+function renderAntecedentes(h, p) {
+  if (!h) return `<div class="empty-state"><div class="icon">📄</div><p>Sin historia clínica registrada</p></div>`;
+  const field = (label, val) => `
+    <div class="ante-item">
+      <div class="ante-label">${label}</div>
+      <div class="ante-val ${val ? '' : 'ante-empty'}">${val || 'No registrado'}</div>
+    </div>`;
+  return `
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:1.2rem;margin-bottom:1rem">
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px">Historia clínica abierta</div>
+      <div style="font-size:0.85rem">${fmt(h.fechaApertura)}</div>
+    </div>
+    <div class="ante-grid">
+      ${field('Enfermedades Crónicas', h.enfermedadesCronicas)}
+      ${field('Antecedentes Familiares', h.antecedentesFamiliares)}
+      ${field('Antecedentes Quirúrgicos', h.antecedentesQuirurgicos)}
+      ${field('Antecedentes Perinatales', h.antecedentesPerinatales)}
+      ${field('Vacunas', h.vacunas)}
+      ${field('Alergias', p.alergias)}
+      ${field('Observaciones Generales', h.observaciones)}
+      ${field('Dirección', p.direccion)}
+    </div>`;
+}
+
+// ── Utils ────────────────────────────────────────────────────────────────────
+function fmt(dateStr) {
+  if (!dateStr) return '—';
+  return new Date(dateStr).toLocaleString('es-GT', {
+    day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Citas — Clínica Médica</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="auth.js"></script>
+<script src="validaciones.js"></script>
+<style>
+  :root{--teal:#0fa8a0;--teal-dark:#0a7a75;--teal-glow:rgba(15,168,160,0.2);--bg:#080f14;--surface:#0e1a22;--surface2:#152130;--surface3:#1c2e3e;--border:rgba(15,168,160,0.15);--border2:rgba(255,255,255,0.06);--text:#e8f4f3;--muted:#6a9a96;--sidebar-w:240px;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;overflow:hidden;}
+  .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;}
+  .sidebar-logo{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .logo-box{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .logo-text{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;line-height:1.2;}
+  .logo-text small{display:block;font-size:0.65rem;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400;}
+  .nav-section{padding:1rem 0.75rem 0.5rem;}
+  .nav-label{font-size:0.65rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:0 0.75rem;margin-bottom:0.4rem;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:0.65rem 0.75rem;border-radius:10px;cursor:pointer;transition:all 0.2s;font-size:0.88rem;color:var(--muted);text-decoration:none;margin-bottom:2px;}
+  .nav-item:hover{background:var(--surface2);color:var(--text);}
+  .nav-item.active{background:rgba(15,168,160,0.15);color:var(--teal);}
+  .nav-item svg{width:18px;height:18px;flex-shrink:0;}
+  .sidebar-footer{margin-top:auto;padding:1rem;border-top:1px solid var(--border);}
+  .user-card{display:flex;align-items:center;gap:10px;padding:0.6rem;border-radius:10px;background:var(--surface2);}
+  .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal-dark));display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:600;flex-shrink:0;}
+  .user-info{flex:1;min-width:0;}
+  .user-name{font-size:0.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .user-role{font-size:0.7rem;color:var(--teal);}
+  .btn-logout{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:6px;transition:all 0.2s;}
+  .btn-logout:hover{color:#f87171;}
+  .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+  .topbar{padding:1.2rem 2rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-shrink:0;z-index:50;}
+  .page-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;}
+  .btn-primary{background:linear-gradient(135deg,var(--teal),var(--teal-dark));color:white;border:none;padding:0.6rem 1.2rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:500;cursor:pointer;transition:all 0.2s;box-shadow:0 3px 12px var(--teal-glow);}
+  .btn-primary:hover{transform:translateY(-2px);}
+  .btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+  .content{padding:2rem;flex:1;overflow-y:auto;}
+
+  /* ── View Toggle ── */
+  .view-toggle{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:10px;}
+  .vt-btn{background:none;border:none;color:var(--muted);padding:0.4rem 0.9rem;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;transition:all 0.2s;}
+  .vt-btn.active{background:var(--teal);color:white;}
+
+  /* ── Filters row ── */
+  .filters{display:flex;gap:0.75rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center;}
+  .filter-select,.search-input{background:var(--surface);border:1px solid var(--border2);color:var(--text);padding:0.55rem 0.9rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;transition:border-color 0.2s;}
+  .filter-select:focus,.search-input:focus{border-color:var(--teal);}
+  .search-input{min-width:220px;}
+  .filter-select option{background:var(--surface2);}
+
+  /* ── Table view ── */
+  .panel{background:var(--surface);border:1px solid var(--border2);border-radius:16px;overflow:hidden;}
+  table{width:100%;border-collapse:collapse;}
+  th{font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:left;padding:0.75rem 1rem;border-bottom:1px solid var(--border2);background:rgba(255,255,255,0.02);}
+  td{padding:0.85rem 1rem;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.85rem;}
+  tr:last-child td{border:none;}
+  tr:hover td{background:rgba(255,255,255,0.02);}
+  .badge{padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:500;display:inline-block;}
+  .badge-green{background:rgba(52,211,153,0.15);color:#34d399;}
+  .badge-yellow{background:rgba(245,158,11,0.15);color:#f59e0b;}
+  .badge-red{background:rgba(248,113,113,0.15);color:#f87171;}
+  .badge-blue{background:rgba(59,130,246,0.15);color:#60a5fa;}
+  .badge-teal{background:rgba(15,168,160,0.15);color:var(--teal);}
+  .action-btn{background:none;border:1px solid var(--border2);color:var(--muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;transition:all 0.2s;margin-right:4px;}
+  .action-btn:hover{border-color:var(--teal);color:var(--teal);}
+  .action-btn.danger:hover{border-color:#f87171;color:#f87171;}
+
+  /* ── Calendar view ── */
+  #calendarView{display:none;}
+  .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;}
+  .cal-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;}
+  .cal-nav{background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:0.4rem 0.8rem;border-radius:8px;cursor:pointer;font-size:0.85rem;transition:all 0.2s;}
+  .cal-nav:hover{border-color:var(--teal);color:var(--teal);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:1.5rem;}
+  .cal-dow{text-align:center;font-size:0.68rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0.5rem 0;}
+  .cal-day{background:var(--surface);border:1px solid var(--border2);border-radius:10px;min-height:80px;padding:0.5rem;cursor:pointer;transition:all 0.2s;position:relative;}
+  .cal-day:hover{border-color:var(--teal);background:var(--surface2);}
+  .cal-day.today{border-color:var(--teal);background:rgba(15,168,160,0.05);}
+  .cal-day.other-month{opacity:0.35;}
+  .cal-day.selected{border-color:var(--teal);background:rgba(15,168,160,0.12);}
+  .cal-day-num{font-size:0.78rem;font-weight:600;margin-bottom:4px;}
+  .cal-day.today .cal-day-num{color:var(--teal);}
+  .cal-event{font-size:0.62rem;background:rgba(15,168,160,0.2);color:var(--teal);border-radius:4px;padding:1px 5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cal-event.e-pendiente{background:rgba(245,158,11,0.15);color:#f59e0b;}
+  .cal-event.e-confirmada{background:rgba(15,168,160,0.15);color:var(--teal);}
+  .cal-event.e-en-curso{background:rgba(59,130,246,0.15);color:#60a5fa;}
+  .cal-event.e-completada{background:rgba(52,211,153,0.12);color:#34d399;}
+  .cal-event.e-cancelada{background:rgba(248,113,113,0.1);color:#f87171;}
+  .cal-more{font-size:0.6rem;color:var(--muted);margin-top:2px;}
+
+  /* Day detail panel */
+  .day-detail{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:1.2rem;}
+  .dd-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;}
+  .dd-item{display:flex;align-items:flex-start;gap:12px;padding:0.75rem;border-radius:10px;background:var(--surface2);margin-bottom:0.5rem;transition:all 0.2s;}
+  .dd-item:hover{background:var(--surface3);}
+  .dd-time{font-size:0.8rem;font-weight:600;color:var(--teal);min-width:50px;}
+  .dd-name{font-size:0.85rem;font-weight:500;}
+  .dd-sub{font-size:0.75rem;color:var(--muted);}
+  .dd-empty{text-align:center;color:var(--muted);padding:2rem;font-size:0.85rem;}
+
+  /* ── Modal ── */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;}
+  .overlay.show{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;width:100%;max-width:520px;position:relative;animation:modalIn 0.3s cubic-bezier(0.16,1,0.3,1);max-height:90vh;overflow-y:auto;}
+  @keyframes modalIn{from{opacity:0;transform:scale(0.95) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+  .modal-title{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:1.2rem;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  .form-field{display:flex;flex-direction:column;gap:6px;}
+  .form-field.full{grid-column:1/-1;}
+  .form-field label{font-size:0.72rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+  .required-star{color:#f87171;}
+  .form-field input,.form-field select,.form-field textarea{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:0.7rem 0.9rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;transition:border-color 0.2s;width:100%;}
+  .form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-glow);}
+  .form-field select option{background:var(--surface2);}
+  .modal-actions{display:flex;justify-content:flex-end;gap:0.75rem;margin-top:1.5rem;}
+  .btn-cancel{background:none;border:1px solid var(--border2);color:var(--muted);padding:0.6rem 1.2rem;border-radius:10px;cursor:pointer;font-size:0.88rem;transition:all 0.2s;}
+  .btn-cancel:hover{border-color:var(--muted);color:var(--text);}
+  .btn-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;}
+  .btn-close:hover{color:var(--text);}
+  .info-banner{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:0.65rem 1rem;font-size:0.82rem;color:#60a5fa;margin-bottom:1rem;}
+  .warn-banner{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:0.65rem 1rem;font-size:0.82rem;color:#f59e0b;margin-bottom:1rem;}
+
+  /* Slots grid */
+  .slots-grid{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem;}
+  .slot-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--muted);padding:0.4rem 0.75rem;border-radius:8px;cursor:pointer;font-size:0.8rem;transition:all 0.2s;}
+  .slot-btn:hover:not(:disabled){border-color:var(--teal);color:var(--teal);}
+  .slot-btn.selected{background:rgba(15,168,160,0.2);border-color:var(--teal);color:var(--teal);font-weight:600;}
+  .slot-btn:disabled{opacity:0.3;cursor:not-allowed;}
+  .slot-btn.range-start{background:rgba(15,168,160,0.35);border-color:var(--teal);color:var(--teal);font-weight:700;}
+  .slot-btn.range-mid{background:rgba(15,168,160,0.15);border-color:var(--teal);color:var(--teal);}
+  .slot-btn.range-end{background:rgba(15,168,160,0.35);border-color:var(--teal);color:var(--teal);font-weight:700;}
+  .slot-info{font-size:0.78rem;color:var(--teal);margin-top:0.5rem;background:rgba(15,168,160,0.08);border-radius:8px;padding:6px 10px;display:none;}
+  .slots-loading{font-size:0.8rem;color:var(--muted);padding:0.5rem;}
+
+  /* Receta modal */
+  ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar"></aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Gestión de Citas</div>
+    <div style="display:flex;gap:0.75rem;align-items:center">
+      <div class="view-toggle">
+        <button class="vt-btn active" id="btnTabla" onclick="setView('tabla')">☰ Lista</button>
+        <button class="vt-btn" id="btnCal" onclick="setView('calendario')">📅 Calendario</button>
+      </div>
+      <div id="topbarActions"></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- VISTA TABLA -->
+    <div id="tablaView">
+      <div class="filters">
+        <input class="search-input" type="text" placeholder="🔍 Buscar paciente o doctor..." oninput="filtrar()">
+        <select class="filter-select" id="filterEstado" onchange="filtrar()">
+          <option value="">Todos los estados</option>
+          <option>Pendiente</option>
+          <option>Confirmada</option>
+          <option>En Curso</option>
+          <option>Completada</option>
+          <option>Cancelada</option>
+        </select>
+        <select class="filter-select" id="filterFecha" onchange="filtrar()">
+          <option value="">Todas las fechas</option>
+          <option value="hoy">Hoy</option>
+          <option value="semana">Esta semana</option>
+          <option value="mes">Este mes</option>
+        </select>
+      </div>
+      <div class="panel">
+        <table>
+          <thead><tr id="tableHead"></tr></thead>
+          <tbody id="tableCitas">
+            <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:3rem">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VISTA CALENDARIO -->
+    <div id="calendarView">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="cambiarMes(-1)">← Anterior</button>
+        <div class="cal-title" id="calTitle"></div>
+        <button class="cal-nav" onclick="cambiarMes(1)">Siguiente →</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="day-detail" id="dayDetail" style="display:none">
+        <div class="dd-title">
+          <span id="ddTitleText">Citas del día</span>
+          <button class="cal-nav" style="font-size:0.75rem" onclick="document.getElementById('dayDetail').style.display='none'">✕</button>
+        </div>
+        <div id="ddList"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ══════════════════════════════════════
+     MODAL NUEVA CITA
+═══════════════════════════════════════ -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <button class="btn-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">📅 Nueva Cita</div>
+
+    <div id="infoBanner" class="info-banner" style="display:none"></div>
+    <div id="warnBanner" class="warn-banner" style="display:none"></div>
+
+    <div class="form-grid">
+      <!-- Paciente -->
+      <div class="form-field full" id="fieldPaciente">
+        <label>Paciente <span class="required-star">*</span></label>
+        <select id="selPaciente"></select>
+      </div>
+      <!-- Doctor -->
+      <div class="form-field full" id="fieldDoctor">
+        <label>Doctor <span class="required-star">*</span></label>
+        <select id="selDoctor" onchange="onDoctorChange()"></select>
+      </div>
+      <!-- Fecha -->
+      <div class="form-field full">
+        <label>Fecha <span class="required-star">*</span></label>
+        <input type="date" id="inpFecha" onchange="onFechaChange()">
+      </div>
+      <!-- Slots disponibles -->
+      <div class="form-field full" id="fieldSlots">
+        <label>Hora disponible <span class="required-star">*</span></label>
+        <div id="slotsContainer"><p class="slots-loading">Selecciona un doctor y una fecha para ver los slots disponibles.</p></div>
+        <div class="slot-info" id="slotInfo"></div>
+      </div>
+      <!-- Motivo -->
+      <div class="form-field full">
+        <label>Motivo de Consulta</label>
+        <textarea id="inpMotivo" rows="3" placeholder="Describe el motivo de la consulta..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="btnCrear" onclick="crearCita()">Guardar Cita</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL RECETA
+═══════════════════════════════════════ -->
+<div class="overlay" id="overlayReceta">
+  <div class="modal" style="max-width:640px">
+    <button class="btn-close" onclick="closeReceta()">✕</button>
+    <div class="modal-title">💊 Emitir receta</div>
+    <p id="recetaCitaInfo" style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem"></p>
+    <div id="recetaLineas"></div>
+    <button type="button" class="btn-cancel" style="margin-top:0.5rem" onclick="addLineaReceta()">+ Agregar medicamento</button>
+    <div class="form-field full" style="margin-top:1rem">
+      <label>Observaciones</label>
+      <textarea id="recetaObs" rows="2" placeholder="Indicaciones generales..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeReceta()">Cancelar</button>
+      <button class="btn-primary" onclick="guardarReceta()">Guardar receta</button>
+    </div>
+  </div>
+</div>
+
+<script>
+AUTH.guard();
+AUTH.initSidebar('citas.html');
+
+const API = 'http://localhost:5190/api';
+const headers = AUTH.headers();
+const rol = AUTH.rol();
+
+let allCitas = [], pacientes = [], doctores = [];
+let medicamentosList = [];
+let recetaCitaId = null;
+let selectedSlot = null;
+let selectedSlots = [];  // multi-slot support
+let allSlotsData = [];   // all slots from backend // { inicio: Date, fin: Date }
+
+// ─── Vista (tabla / calendario) ────────────────────────────────────────────
+let currentView = 'tabla';
+let calYear, calMonth;
+const now = new Date();
+calYear  = now.getFullYear();
+calMonth = now.getMonth(); // 0-based
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('tablaView').style.display = v === 'tabla' ? 'block' : 'none';
+  document.getElementById('calendarView').style.display = v === 'calendario' ? 'block' : 'none';
+  document.getElementById('btnTabla').classList.toggle('active', v === 'tabla');
+  document.getElementById('btnCal').classList.toggle('active', v === 'calendario');
+  if (v === 'calendario') renderCalendar();
+}
+
+// ─── Carga principal ────────────────────────────────────────────────────────
+async function load() {
+  try {
+    let citasUrl = `${API}/citas`;
+    if (AUTH.esDoctor() && AUTH.doctorId())
+      citasUrl = `${API}/citas/doctor/${AUTH.doctorId()}`;
+    else if (AUTH.esPaciente() && AUTH.pacienteId())
+      citasUrl = `${API}/citas/paciente/${AUTH.pacienteId()}`;
+
+    if (AUTH.esDoctor()) document.getElementById('pageTitle').textContent = 'Mis Citas';
+    if (AUTH.esPaciente()) document.getElementById('pageTitle').textContent = 'Mis Citas';
+
+    const promises = [fetch(citasUrl, {headers}).then(r => r.json())];
+    if (AUTH.esAdminORecep()) {
+      promises.push(
+        fetch(`${API}/pacientes`, {headers}).then(r => r.json()),
+        fetch(`${API}/doctores`,  {headers}).then(r => r.json())
+      );
+    } else if (AUTH.esDoctor()) {
+      promises.push(fetch(`${API}/pacientes`, {headers}).then(r => r.json()), Promise.resolve([]));
+    } else {
+      promises.push(Promise.resolve([]), Promise.resolve([]));
+    }
+
+    [allCitas, pacientes, doctores] = await Promise.all(promises);
+    setupUI();
+    renderTable(allCitas);
+    llenarSelects();
+    if (currentView === 'calendario') renderCalendar();
+  } catch(e) {
+    console.error(e);
+    document.getElementById('tableCitas').innerHTML =
+      `<tr><td colspan="7" style="text-align:center;color:#f87171;padding:3rem">Error: ${e.message}</td></tr>`;
+  }
+}
+
+function setupUI() {
+  const actions = document.getElementById('topbarActions');
+  if (AUTH.esAdminORecep())
+    actions.innerHTML = `<button class="btn-primary" onclick="openModal()">+ Nueva Cita</button>`;
+  else if (AUTH.esDoctor())
+    actions.innerHTML = `<button class="btn-primary" onclick="openModal()">+ Solicitar Cita</button>`;
+
+  const head = document.getElementById('tableHead');
+  if (AUTH.esDoctor())
+    head.innerHTML = `<th>Paciente</th><th>Fecha</th><th>Hora</th><th>Motivo</th><th>Estado</th><th>Acciones</th>`;
+  else if (AUTH.esPaciente())
+    head.innerHTML = `<th>Doctor</th><th>Especialidad</th><th>Fecha</th><th>Motivo</th><th>Estado</th>`;
+  else
+    head.innerHTML = `<th>#</th><th>Paciente</th><th>Doctor</th><th>Fecha y Hora</th><th>Motivo</th><th>Estado</th><th>Acciones</th>`;
+
+  if (AUTH.esDoctor()) document.getElementById('fieldDoctor').style.display = 'none';
+}
+
+function llenarSelects() {
+  const sp = document.getElementById('selPaciente');
+  sp.innerHTML = '<option value="">— Selecciona paciente —</option>' +
+    pacientes.map(p => `<option value="${p.pacienteId}">${p.usuario?.nombre||''} ${p.usuario?.apellido||''}</option>`).join('');
+
+  const sd = document.getElementById('selDoctor');
+  if (AUTH.esAdminORecep()) {
+    sd.innerHTML = '<option value="">— Selecciona doctor —</option>' +
+      doctores.map(d => `<option value="${d.doctorId}">Dr. ${d.usuario?.nombre||''} ${d.usuario?.apellido||''} — ${d.especialidad?.nombre||''}</option>`).join('');
+  }
+}
+
+// ─── Tabla ──────────────────────────────────────────────────────────────────
+function renderTable(citas) {
+  const tb = document.getElementById('tableCitas');
+  if (!citas.length) {
+    tb.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:3rem">Sin citas registradas</td></tr>`;
+    return;
+  }
+  if (AUTH.esPaciente()) {
+    tb.innerHTML = citas.map(c => `<tr>
+      <td>Dr. ${c.doctor?.usuario?.apellido||'—'}</td>
+      <td>${c.doctor?.especialidad?.nombre||'—'}</td>
+      <td>${new Date(c.fechaHora).toLocaleString('es-GT')}</td>
+      <td>${c.motivo||'—'}</td>
+      <td><span class="badge ${badgeCls(c.estado)}">${c.estado}</span></td>
+    </tr>`).join('');
+    return;
+  }
+  if (AUTH.esDoctor()) {
+    tb.innerHTML = citas.map(c => `<tr>
+      <td>${c.paciente?.usuario?.nombre||'—'} ${c.paciente?.usuario?.apellido||''}</td>
+      <td>${new Date(c.fechaHora).toLocaleDateString('es-GT')}</td>
+      <td>${new Date(c.fechaHora).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.motivo||'—'}</td>
+      <td><span class="badge ${badgeCls(c.estado)}">${c.estado}</span></td>
+      <td>
+        ${c.estado==='Pendiente'||c.estado==='Confirmada'
+          ? `<button class="action-btn" onclick="cambiarEstado(${c.citaId},'En Curso')">▷ Iniciar</button>` : ''}
+        ${c.estado==='En Curso'
+          ? `<button class="action-btn" onclick="cambiarEstado(${c.citaId},'Completada')">✓ Completar</button>` : ''}
+        ${c.estado==='Completada'
+          ? `<button class="action-btn" onclick="abrirReceta(${c.citaId})">💊 Receta</button>` : ''}
+      </td>
+    </tr>`).join('');
+    return;
+  }
+  // Admin / Recep
+  tb.innerHTML = citas.map(c => `<tr>
+    <td style="color:var(--muted);font-size:0.78rem">#${c.citaId}</td>
+    <td>${c.paciente?.usuario?.nombre||'—'} ${c.paciente?.usuario?.apellido||''}</td>
+    <td>Dr. ${c.doctor?.usuario?.apellido||'—'}</td>
+    <td>${new Date(c.fechaHora).toLocaleString('es-GT')}</td>
+    <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.motivo||'—'}</td>
+    <td><span class="badge ${badgeCls(c.estado)}">${c.estado}</span></td>
+    <td>
+      ${c.estado==='Pendiente'
+        ? `<button class="action-btn" onclick="cambiarEstado(${c.citaId},'Confirmada')">✓ Confirmar</button>` : ''}
+      ${c.estado==='Confirmada'
+        ? `<button class="action-btn" onclick="cambiarEstado(${c.citaId},'En Curso')">▷ Iniciar</button>` : ''}
+      ${c.estado==='En Curso'
+        ? `<button class="action-btn" onclick="cambiarEstado(${c.citaId},'Completada')">☑ Completar</button>` : ''}
+      ${c.estado!=='Cancelada'&&c.estado!=='Completada'
+        ? `<button class="action-btn danger" onclick="cambiarEstado(${c.citaId},'Cancelada')">✕ Cancelar</button>` : ''}
+    </td>
+  </tr>`).join('');
+}
+
+function filtrar() {
+  const q   = document.querySelector('.search-input').value.toLowerCase();
+  const est = document.getElementById('filterEstado').value;
+  const fec = document.getElementById('filterFecha').value;
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const fin7 = new Date(hoy); fin7.setDate(fin7.getDate()+7);
+  const finMes = new Date(hoy.getFullYear(), hoy.getMonth()+1, 0);
+
+  renderTable(allCitas.filter(c => {
+    const txt = `${c.paciente?.usuario?.nombre||''} ${c.paciente?.usuario?.apellido||''} ${c.doctor?.usuario?.apellido||''}`.toLowerCase();
+    const fecha = new Date(c.fechaHora);
+    return txt.includes(q) &&
+      (!est || c.estado === est) &&
+      (!fec ||
+        (fec==='hoy'    && fecha >= hoy && fecha < new Date(hoy.getTime()+86400000)) ||
+        (fec==='semana' && fecha >= hoy && fecha <= fin7) ||
+        (fec==='mes'    && fecha >= hoy && fecha <= finMes));
+  }));
+}
+
+function badgeCls(e) {
+  if(e==='Completada') return 'badge-green';
+  if(e==='Pendiente')  return 'badge-yellow';
+  if(e==='Cancelada')  return 'badge-red';
+  if(e==='Confirmada') return 'badge-teal';
+  return 'badge-blue'; // En Curso
+}
+
+async function cambiarEstado(id, estado) {
+  try {
+    const res = await fetch(`${API}/citas/${id}/estado`, {method:'PUT', headers, body:JSON.stringify(estado)});
+    if (!res.ok) throw new Error();
+    Validar.toast(`Cita actualizada: ${estado}`, 'ok');
+    load();
+  } catch { Validar.toast('Error al actualizar la cita.', 'error'); }
+}
+
+// ─── Calendario ─────────────────────────────────────────────────────────────
+function cambiarMes(delta) {
+  calMonth += delta;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+function renderCalendar() {
+  document.getElementById('calTitle').textContent = `${MESES[calMonth]} ${calYear}`;
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = DIAS.map(d => `<div class="cal-dow">${d}</div>`).join('');
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Dom
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Prev month padding
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const d = daysInPrev - i;
+    grid.insertAdjacentHTML('beforeend',
+      `<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`);
+  }
+
+  // Current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(calYear, calMonth, d);
+    const isToday = date.getTime() === today.getTime();
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+    // Citas de este día
+    const citasDia = allCitas.filter(c => {
+      const f = new Date(c.fechaHora);
+      return f.getFullYear() === calYear && f.getMonth() === calMonth && f.getDate() === d;
+    });
+
+    const maxShow = 3;
+    const eventsHtml = citasDia.slice(0, maxShow).map(c => {
+      const cls = 'e-'+c.estado.toLowerCase().replace(' ','-');
+      const hora = new Date(c.fechaHora).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'});
+      const label = AUTH.esPaciente()
+        ? `${hora} Dr. ${c.doctor?.usuario?.apellido||'?'}`
+        : AUTH.esDoctor()
+          ? `${hora} ${c.paciente?.usuario?.apellido||'?'}`
+          : `${hora} ${c.paciente?.usuario?.apellido||'?'}`;
+      return `<div class="cal-event ${cls}">${label}</div>`;
+    }).join('');
+
+    const moreHtml = citasDia.length > maxShow
+      ? `<div class="cal-more">+${citasDia.length - maxShow} más</div>` : '';
+
+    grid.insertAdjacentHTML('beforeend',`
+      <div class="cal-day${isToday?' today':''}" onclick="showDayDetail('${dateStr}',${d})">
+        <div class="cal-day-num">${d}</div>
+        ${eventsHtml}${moreHtml}
+      </div>`);
+  }
+
+  // Next month padding
+  const totalCells = firstDay + daysInMonth;
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let d = 1; d <= remaining; d++) {
+    grid.insertAdjacentHTML('beforeend',
+      `<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`);
+  }
+}
+
+function showDayDetail(dateStr, dayNum) {
+  const citasDia = allCitas.filter(c => {
+    const f = new Date(c.fechaHora);
+    const fStr = `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}-${String(f.getDate()).padStart(2,'0')}`;
+    return fStr === dateStr;
+  }).sort((a,b) => new Date(a.fechaHora) - new Date(b.fechaHora));
+
+  document.getElementById('ddTitleText').textContent =
+    `Citas del ${dayNum} de ${MESES[calMonth]} ${calYear} (${citasDia.length})`;
+
+  const list = document.getElementById('ddList');
+  if (!citasDia.length) {
+    list.innerHTML = `<div class="dd-empty">Sin citas programadas para este día</div>`;
+  } else {
+    list.innerHTML = citasDia.map(c => {
+      const hora = new Date(c.fechaHora).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'});
+      const pacNombre = `${c.paciente?.usuario?.nombre||''} ${c.paciente?.usuario?.apellido||''}`.trim();
+      const docNombre = `Dr. ${c.doctor?.usuario?.apellido||''}`;
+      return `<div class="dd-item">
+        <div class="dd-time">${hora}</div>
+        <div>
+          <div class="dd-name">${AUTH.esPaciente() ? docNombre : pacNombre}</div>
+          <div class="dd-sub">${AUTH.esPaciente() ? (c.doctor?.especialidad?.nombre||'') : docNombre} · ${c.motivo||'Sin motivo'}</div>
+          <span class="badge ${badgeCls(c.estado)}" style="margin-top:4px;display:inline-block">${c.estado}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('dayDetail').style.display = 'block';
+}
+
+// ─── Modal nueva cita ────────────────────────────────────────────────────────
+function openModal() {
+  selectedSlot = null;
+  document.getElementById('selDoctor').value = '';
+  document.getElementById('inpFecha').value = '';
+  document.getElementById('inpMotivo').value = '';
+  document.getElementById('slotsContainer').innerHTML = '<p class="slots-loading">Selecciona un doctor y una fecha.</p>';
+  selectedSlots = []; selectedSlot = null; allSlotsData = [];
+  const si = document.getElementById('slotInfo'); if(si) si.style.display='none';
+  document.getElementById('infoBanner').style.display = 'none';
+  document.getElementById('warnBanner').style.display = 'none';
+  document.getElementById('overlay').classList.add('show');
+}
+function closeModal() { document.getElementById('overlay').classList.remove('show'); }
+
+function onDoctorChange() {
+  selectedSlot = null;
+  const fecha = document.getElementById('inpFecha').value;
+  if (fecha) cargarSlots();
+  else document.getElementById('slotsContainer').innerHTML = '<p class="slots-loading">Ahora selecciona una fecha.</p>';
+}
+
+function onFechaChange() {
+  selectedSlot = null;
+  const doctorId = getDoctorId();
+  if (doctorId) cargarSlots();
+  else document.getElementById('slotsContainer').innerHTML = '<p class="slots-loading">Primero selecciona un doctor.</p>';
+}
+
+function getDoctorId() {
+  if (AUTH.esDoctor()) return parseInt(AUTH.doctorId());
+  return parseInt(document.getElementById('selDoctor').value) || null;
+}
+
+async function cargarSlots() {
+  const doctorId = getDoctorId();
+  const fechaVal = document.getElementById('inpFecha').value;
+  if (!doctorId || !fechaVal) return;
+
+  const container = document.getElementById('slotsContainer');
+  container.innerHTML = '<p class="slots-loading">⏳ Cargando slots disponibles...</p>';
+
+  try {
+    // fechaVal es "YYYY-MM-DD" — formato DateOnly que espera el backend
+    const res = await fetch(`${API}/horarios/slots/${doctorId}?fecha=${fechaVal}`, {headers});
+    if (!res.ok) throw new Error('No se pudo consultar el horario del doctor.');
+    const data = await res.json();
+    const slots = data.disponibles || [];
+
+    const disponibles = slots.filter(s => s.disponible);
+
+    if (!slots.length || data.mensaje) {
+      container.innerHTML = `<p class="slots-loading">⚠️ ${data.mensaje || 'Sin slots para este día.'}</p>`;
+      return;
+    }
+
+    if (!disponibles.length) {
+      container.innerHTML = `<p class="slots-loading">⚠️ Todos los slots de este día están ocupados. Elige otra fecha.</p>`;
+      return;
+    }
+
+    allSlotsData = slots;
+    selectedSlots = [];
+    selectedSlot = null;
+    updateSlotInfo();
+
+    container.innerHTML = '<div class="slots-grid" id="slotsGrid"></div>';
+    const grid = document.getElementById('slotsGrid');
+
+    slots.forEach((s, idx) => {
+      const hora = new Date(s.inicio).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'});
+      const btn = document.createElement('button');
+      btn.className = 'slot-btn';
+      btn.textContent = hora;
+      btn.disabled = !s.disponible;
+      btn.dataset.idx = idx;
+      if (!s.disponible && s.motivo) btn.title = s.motivo;
+      btn.onclick = () => onSlotClick(idx);
+      grid.appendChild(btn);
+    });
+
+    // Info de duración
+    const banner = document.getElementById('infoBanner');
+    banner.textContent = `⏱ Duración por slot: ${data.duracionSlotMin} min. Selecciona uno o varios slots consecutivos para citas más largas.`;
+    banner.style.display = 'block';
+
+  } catch(e) {
+    container.innerHTML = `<p class="slots-loading" style="color:#f87171">Error: ${e.message}</p>`;
+  }
+}
+
+function onSlotClick(idx) {
+  const slot = allSlotsData[idx];
+  if (!slot || !slot.disponible) return;
+
+  if (selectedSlots.length === 0) {
+    // First slot selected
+    selectedSlots = [idx];
+  } else {
+    const first = selectedSlots[0];
+    const last  = selectedSlots[selectedSlots.length - 1];
+    if (idx === first && selectedSlots.length === 1) {
+      // Deselect
+      selectedSlots = [];
+    } else if (idx > last) {
+      // Extend range forward — only if all slots in between are available
+      const range = [];
+      for (let i = first; i <= idx; i++) {
+        if (!allSlotsData[i]?.disponible) {
+          Validar.toast('Hay un slot ocupado en ese rango. Elige un rango continuo libre.', 'error');
+          return;
+        }
+        range.push(i);
+      }
+      selectedSlots = range;
+    } else if (idx < first) {
+      // Extend range backward
+      const range = [];
+      for (let i = idx; i <= last; i++) {
+        if (!allSlotsData[i]?.disponible) {
+          Validar.toast('Hay un slot ocupado en ese rango.', 'error');
+          return;
+        }
+        range.push(i);
+      }
+      selectedSlots = range;
+    } else {
+      // Click inside range — shrink to just this slot
+      selectedSlots = [idx];
+    }
+  }
+
+  // Update selectedSlot for crearCita
+  if (selectedSlots.length > 0) {
+    selectedSlot = {
+      inicio: allSlotsData[selectedSlots[0]].inicio,
+      fin:    allSlotsData[selectedSlots[selectedSlots.length - 1]].fin
+    };
+  } else {
+    selectedSlot = null;
+  }
+
+  // Render visual
+  document.querySelectorAll('.slot-btn').forEach((btn, i) => {
+    btn.classList.remove('selected','range-start','range-mid','range-end');
+    if (selectedSlots.includes(i)) {
+      if (selectedSlots.length === 1) btn.classList.add('selected');
+      else if (i === selectedSlots[0]) btn.classList.add('range-start');
+      else if (i === selectedSlots[selectedSlots.length-1]) btn.classList.add('range-end');
+      else btn.classList.add('range-mid');
+    }
+  });
+  updateSlotInfo();
+}
+
+function updateSlotInfo() {
+  const info = document.getElementById('slotInfo');
+  if (!info) return;
+  if (!selectedSlots.length) { info.style.display = 'none'; return; }
+  const inicio = new Date(allSlotsData[selectedSlots[0]].inicio).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'});
+  const fin    = new Date(allSlotsData[selectedSlots[selectedSlots.length-1]].fin).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'});
+  const mins   = selectedSlots.length * (allSlotsData[0]?.duracionMin || 30);
+  info.textContent = `✓ Cita: ${inicio} → ${fin} (${mins} min)`;
+  info.style.display = 'block';
+}
+
+async function crearCita() {
+  let pacienteId = parseInt(document.getElementById('selPaciente').value);
+  let doctorId = getDoctorId();
+
+  if (!pacienteId) { Validar.toast('Selecciona un paciente.','error'); return; }
+  if (!doctorId)   { Validar.toast('Selecciona un doctor.','error'); return; }
+  if (!selectedSlot) { Validar.toast('Selecciona un slot de hora disponible.','error'); return; }
+
+  // ── FIX: construir ISO 8601 correcto desde el slot devuelto por el backend ──
+  // El backend devuelve la fecha en ISO, la mandamos de vuelta tal cual.
+  const fechaHora = selectedSlot.inicio; // ya es ISO string del servidor
+
+  const body = { pacienteId, doctorId, fechaHora, motivo: document.getElementById('inpMotivo').value || null };
+
+  const btn = document.getElementById('btnCrear');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  try {
+    const res = await fetch(`${API}/citas`, {method:'POST', headers, body:JSON.stringify(body)});
+    if (res.ok) {
+      Validar.toast('Cita creada exitosamente ✓','ok');
+      closeModal();
+      load();
+    } else {
+      const text = await res.text();
+      let msg = text;
+      try { msg = JSON.parse(text); msg = msg.title || msg || text; } catch {}
+      const warn = document.getElementById('warnBanner');
+      warn.textContent = '⚠️ ' + msg;
+      warn.style.display = 'block';
+      Validar.toast('Error: ' + msg, 'error');
+    }
+  } catch(e) {
+    Validar.toast('Error al conectar con el servidor.','error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar Cita';
+  }
+}
+
+// ─── Receta ──────────────────────────────────────────────────────────────────
+async function ensureMedicamentos() {
+  if (medicamentosList.length) return;
+  const r = await fetch(`${API}/medicamentos`, { headers });
+  if (!r.ok) throw new Error('No se pudieron cargar medicamentos');
+  medicamentosList = await r.json();
+}
+
+function addLineaReceta() {
+  const wrap = document.createElement('div');
+  wrap.className = 'receta-linea form-grid';
+  wrap.style.marginBottom = '10px';
+  const opts = medicamentosList.map(m =>
+    `<option value="${m.medicamentoId}">${m.nombre} (stock ${m.stock})</option>`).join('');
+  // Tipo: 'stock' o 'texto'
+  const hasStock = medicamentosList.length > 0;
+  wrap.innerHTML = `
+    <div class="form-field" style="grid-column:1/-1;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
+      <label style="margin:0">Tipo:</label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;cursor:pointer">
+        <input type="radio" name="tipo_${Date.now()}" class="rad-tipo" value="stock" onchange="toggleTipoLinea(this)" ${hasStock?'':'disabled'}> De nuestro stock
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;cursor:pointer">
+        <input type="radio" name="tipo_${Date.now()}" class="rad-tipo" value="texto" onchange="toggleTipoLinea(this)" checked> Solo texto (sin cobro)
+      </label>
+    </div>
+    <div class="form-field full sel-stock-wrap" style="display:none">
+      <label>Medicamento de stock</label>
+      <select class="sel-med" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:0.6rem;border-radius:10px;width:100%">
+        <option value="">— Selecciona —</option>${opts}
+      </select>
+    </div>
+    <div class="form-field full sel-texto-wrap">
+      <label>Medicamento (nombre libre)</label>
+      <input type="text" class="inp-med-texto" placeholder="ej. Amoxicilina 500mg" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:0.6rem;border-radius:10px;width:100%">
+    </div>
+    <div class="form-field"><label>Cantidad</label>
+      <input type="number" class="inp-cant" min="1" value="1" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:0.6rem;border-radius:10px;width:100%">
+    </div>
+    <div class="form-field"><label>Dosis</label>
+      <input type="text" class="inp-dosis" placeholder="ej. 500mg" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:0.6rem;border-radius:10px;width:100%">
+    </div>
+    <div class="form-field"><label>Frecuencia</label>
+      <input type="text" class="inp-freq" placeholder="ej. cada 8h" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:0.6rem;border-radius:10px;width:100%">
+    </div>
+    <div class="form-field"><label>Duración</label>
+      <input type="text" class="inp-dur" placeholder="ej. 7 días" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:0.6rem;border-radius:10px;width:100%">
+    </div>
+    <div class="form-field" style="display:flex;align-items:flex-end">
+      <button type="button" onclick="this.closest('.receta-linea').remove()" style="background:none;border:1px solid rgba(248,113,113,0.3);color:#f87171;border-radius:8px;padding:0.6rem 0.8rem;cursor:pointer;font-size:0.82rem;width:100%">✕ Quitar</button>
+    </div>`;
+  document.getElementById('recetaLineas').appendChild(wrap);
+}
+
+function toggleTipoLinea(radio) {
+  const row = radio.closest('.receta-linea');
+  const isStock = radio.value === 'stock';
+  row.querySelector('.sel-stock-wrap').style.display = isStock ? '' : 'none';
+  row.querySelector('.sel-texto-wrap').style.display = isStock ? 'none' : '';
+}
+
+async function abrirReceta(citaId) {
+  recetaCitaId = citaId;
+  try { await ensureMedicamentos(); }
+  catch(e) { Validar.toast('No se pudieron cargar medicamentos.', 'error'); return; }
+  document.getElementById('recetaLineas').innerHTML = '';
+  addLineaReceta();
+  document.getElementById('recetaObs').value = '';
+  document.getElementById('recetaCitaInfo').textContent = `Cita #${citaId} — Completa los medicamentos.`;
+  document.getElementById('overlayReceta').classList.add('show');
+}
+function closeReceta() { document.getElementById('overlayReceta').classList.remove('show'); recetaCitaId = null; }
+
+async function guardarReceta() {
+  if (!recetaCitaId) return;
+  const lineas = [];
+  document.querySelectorAll('#recetaLineas .receta-linea').forEach(row => {
+    const tipoRad = row.querySelector('.rad-tipo:checked');
+    const tipo = tipoRad ? tipoRad.value : 'texto';
+    const mid = tipo === 'stock' ? parseInt(row.querySelector('.sel-med')?.value || 0, 10) : 0;
+    const textoLibre = tipo === 'texto' ? (row.querySelector('.inp-med-texto')?.value?.trim() || '') : '';
+    if (tipo === 'stock' && !mid) return; // skip empty stock lines
+    if (tipo === 'texto' && !textoLibre) return; // skip empty text lines
+    const linea = {
+      cantidad:   parseInt(row.querySelector('.inp-cant').value, 10) || 1,
+      dosis:      row.querySelector('.inp-dosis').value || null,
+      frecuencia: row.querySelector('.inp-freq').value || null,
+      duracion:   row.querySelector('.inp-dur').value || null
+    };
+    if (mid) linea.medicamentoId = mid;
+    else linea.nombreLibre = textoLibre; // campo extra para texto libre
+    lineas.push(linea);
+  });
+  // Medicamentos son OPCIONALES — la receta puede tener solo observaciones (ej. "dormir bien")
+  const obsVal = document.getElementById('recetaObs').value?.trim() || null;
+  if (!lineas.length && !obsVal) {
+    Validar.toast('Escribe al menos una indicación en observaciones o agrega un medicamento.', 'error');
+    return;
+  }
+  try {
+    const res = await fetch(`${API}/recetas`, {
+      method:'POST', headers,
+      body: JSON.stringify({ citaId: recetaCitaId, observaciones: obsVal, lineas })
+    });
+    if (!res.ok) throw new Error((await res.text()).slice(0,120));
+    Validar.toast('Receta guardada correctamente', 'ok');
+    closeReceta(); load();
+  } catch(e) { Validar.toast('Error al guardar receta: ' + e.message, 'error'); }
+}
+
+load();
+</script>
+</body>
+</html>

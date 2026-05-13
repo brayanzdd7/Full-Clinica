@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pacientes — Clínica Médica</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <script src="auth.js"></script>
+  <script src="validaciones.js"></script>
+  <style>
+    :root {
+      --teal: #0fa8a0;
+      --teal-dark: #0a7a75;
+      --teal-glow: rgba(15, 168, 160, 0.2);
+      --bg: #080f14;
+      --surface: #0e1a22;
+      --surface2: #152130;
+      --border: rgba(15, 168, 160, 0.15);
+      --border2: rgba(255, 255, 255, 0.06);
+      --text: #e8f4f3;
+      --muted: #6a9a96;
+      --sidebar-w: 240px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-box {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .logo-text small {
+      display: block;
+      font-size: 0.65rem;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+    }
+
+    .nav-section {
+      padding: 1rem 0.75rem 0.5rem;
+    }
+
+    .nav-label {
+      font-size: 0.65rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.65rem 0.75rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.88rem;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 2px;
+    }
+
+    .nav-item:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: rgba(15, 168, 160, 0.15);
+      color: var(--teal);
+    }
+
+    .nav-item svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.6rem;
+      border-radius: 10px;
+      background: var(--surface2);
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role {
+      font-size: 0.7rem;
+      color: var(--teal);
+    }
+
+    .btn-logout {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      color: #f87171;
+    }
+
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .topbar {
+      padding: 1.2rem 2rem;
+      border-bottom: 1px solid var(--border2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 3px 12px var(--teal-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+    }
+
+    .content {
+      padding: 2rem;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .filters {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-input {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      padding: 0.55rem 0.9rem;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+      min-width: 280px;
+    }
+
+    .search-input:focus {
+      border-color: var(--teal);
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+
+    .patient-card {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: all 0.2s;
+      animation: fadeIn 0.4s ease both;
+    }
+
+    .patient-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+
+    .pat-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #0a4a8a, var(--teal-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .pat-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .pat-email {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .card-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .info-item {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+    }
+
+    .info-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .info-value {
+      font-size: 0.82rem;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    .blood-type {
+      display: inline-block;
+      background: rgba(248, 113, 113, 0.15);
+      color: #f87171;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .action-btn {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      padding: 0.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      transition: all 0.2s;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+    }
+
+    .action-btn:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    /* Modales */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 650px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .modal-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-field.full {
+      grid-column: 1/-1;
+    }
+
+    .form-field label {
+      font-size: 0.72rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .required-star {
+      color: #f87171;
+    }
+
+    .form-field input,
+    .form-field select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.7rem 0.9rem;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px var(--teal-glow);
+    }
+
+    .form-field select option {
+      background: var(--surface2);
+    }
+
+    .form-note {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .ok {
+      color: #34d399;
+    }
+
+    .bad {
+      color: #f87171;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .btn-cancel {
+      background: none;
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.88rem;
+    }
+
+    .btn-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+
+    .btn-close:hover {
+      color: var(--text);
+    }
+
+    .section-sep {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem;
+      color: var(--teal);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      grid-column: 1/-1;
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border2);
+    }
+
+    /* ── HISTORIAL ─────────────────────────────────────────── */
+    .hist-modal {
+      max-width: 780px;
+    }
+
+    .resumen-hist {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.6rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .rh-item {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 0.6rem;
+      text-align: center;
+    }
+
+    .rh-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--teal);
+    }
+
+    .rh-lbl {
+      font-size: 0.62rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hist-tabs {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .hist-tab {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      padding: 0.4rem 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: all 0.2s;
+    }
+
+    .hist-tab.active {
+      background: rgba(15, 168, 160, 0.15);
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    .hist-panel {
+      display: none;
+    }
+
+    .hist-panel.active {
+      display: block;
+    }
+
+    .hist-item {
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.5rem;
+      border-left: 3px solid var(--border2);
+    }
+
+    .hist-item.tipo-cita {
+      border-left-color: var(--teal);
+    }
+
+    .hist-item.tipo-receta {
+      border-left-color: #a855f7;
+    }
+
+    .hist-item.tipo-pago {
+      border-left-color: #34d399;
+    }
+
+    .hist-item.tipo-factura {
+      border-left-color: #f59e0b;
+    }
+
+    .hist-meta {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .hist-title {
+      font-size: 0.88rem;
+      font-weight: 500;
+    }
+
+    .hist-detail {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      display: inline-block;
+      margin-top: 4px;
+    }
+
+    .badge-green {
+      background: rgba(52, 211, 153, 0.15);
+      color: #34d399;
+    }
+
+    .badge-yellow {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+    }
+
+    .badge-red {
+      background: rgba(248, 113, 113, 0.15);
+      color: #f87171;
+    }
+
+    .badge-teal {
+      background: rgba(15, 168, 160, 0.15);
+      color: var(--teal);
+    }
+
+    .badge-blue {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+    }
+
+    .med-tag {
+      display: inline-block;
+      background: rgba(168, 85, 247, 0.1);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+      color: #c084fc;
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: 6px;
+      margin: 2px 2px 0 0;
+    }
+
+    .hist-loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .btn-desactivar {
+      background: none;
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      color: #f87171;
+      padding: 4px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.2s;
+    }
+
+    .btn-desactivar:hover {
+      background: rgba(248, 113, 113, 0.1);
+    }
+
+    .btn-activar {
+      background: rgba(52, 211, 153, 0.1);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      color: #34d399;
+      padding: 4px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.2s;
+    }
+
+    .btn-activar:hover {
+      background: rgba(52, 211, 153, 0.2);
+    }
+
+    .section-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .section-toggle-btn {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: all 0.2s;
+    }
+
+    .section-toggle-btn:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    .desactivados-grid {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .desactivados-grid.open {
+      display: grid;
+    }
+
+    .inactivo-card {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 1rem;
+      opacity: 0.7;
+    }
+
+    .inactivo-nombre {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .inactivo-email {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main">
+    <div class="topbar">
+      <div class="page-title">Pacientes</div>
+      <div id="topbarActions"></div>
+    </div>
+    <div class="content">
+      <div class="filters">
+        <input class="search-input" type="text" placeholder="🔍 Buscar por nombre, email..." oninput="filtrar()">
+      </div>
+
+      <!-- USUARIOS DESACTIVADOS -->
+      <div class="section-toggle" id="toggleDesactivados" style="display:none">
+        <button class="section-toggle-btn" onclick="toggleDesactivadosGrid()">👁 Ver pacientes desactivados</button>
+        <span id="countDesactivados" style="font-size:0.78rem;color:var(--muted)"></span>
+      </div>
+      <div class="desactivados-grid" id="desactivadosGrid"></div>
+      <div class="cards-grid" id="grid">
+        <div style="color:var(--muted)">Cargando...</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══════════ MODAL NUEVO PACIENTE ══════════ -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <button class="btn-close" onclick="closeModal()">✕</button>
+      <div class="modal-title">Nuevo Paciente</div>
+      <div class="form-grid">
+        <div class="section-sep">Datos de Cuenta</div>
+        <div class="form-field">
+          <label>Nombre <span class="required-star">*</span></label>
+          <input type="text" id="inpNombre">
+        </div>
+        <div class="form-field">
+          <label>Apellido <span class="required-star">*</span></label>
+          <input type="text" id="inpApellido">
+        </div>
+        <div class="form-field">
+          <label>Correo <span class="required-star">*</span></label>
+          <input type="email" id="inpEmail" placeholder="correo@dominio.com">
+          <small id="emailMsg" class="form-note"></small>
+        </div>
+        <div class="form-field">
+          <label>Confirmar correo <span class="required-star">*</span></label>
+          <input type="email" id="inpEmail2" placeholder="repite el correo">
+          <small id="emailMsg2" class="form-note"></small>
+        </div>
+        <div class="form-field">
+          <label>Contraseña <span class="required-star">*</span></label>
+          <input type="password" id="inpPassword" placeholder="mínimo 6 caracteres">
+          <small id="passMsg" class="form-note"></small>
+        </div>
+        <div class="form-field">
+          <label>Confirmar contraseña <span class="required-star">*</span></label>
+          <input type="password" id="inpPassword2" placeholder="repite la contraseña">
+          <small id="passMsg2" class="form-note"></small>
+        </div>
+        <div class="section-sep">Datos Clínicos</div>
+        <div class="form-field">
+          <label>Fecha de Nacimiento</label>
+          <input type="date" id="inpNac">
+        </div>
+        <div class="form-field">
+          <label>Género</label>
+          <select id="inpGenero">
+            <option value="">—</option>
+            <option>Masculino</option>
+            <option>Femenino</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Teléfono</label>
+          <input type="tel" id="inpTel" placeholder="5555-1234">
+        </div>
+        <div class="form-field">
+          <label>Tipo de Sangre</label>
+          <select id="inpSangre">
+            <option value="">—</option>
+            <option>A+</option>
+            <option>A-</option>
+            <option>B+</option>
+            <option>B-</option>
+            <option>AB+</option>
+            <option>AB-</option>
+            <option>O+</option>
+            <option>O-</option>
+          </select>
+        </div>
+        <div class="form-field full">
+          <label>Dirección</label>
+          <input type="text" id="inpDir">
+        </div>
+        <div class="form-field full">
+          <label>Alergias conocidas</label>
+          <input type="text" id="inpAlerg" placeholder="Penicilina, Ibuprofeno...">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button class="btn-primary" onclick="guardar()">Guardar Paciente</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ MODAL HISTORIAL CLÍNICO ══════════ -->
+  <div class="overlay" id="overlayHist">
+    <div class="modal hist-modal" style="max-width:780px">
+      <button class="btn-close" onclick="closeHist()">✕</button>
+      <div class="modal-title" id="histNombre">Historial del Paciente</div>
+
+      <!-- Resumen stats -->
+      <div class="resumen-hist" id="histResumen">
+        <div class="rh-item">
+          <div class="rh-num">—</div>
+          <div class="rh-lbl">Citas</div>
+        </div>
+        <div class="rh-item">
+          <div class="rh-num">—</div>
+          <div class="rh-lbl">Recetas</div>
+        </div>
+        <div class="rh-item">
+          <div class="rh-num">—</div>
+          <div class="rh-lbl">Pagado</div>
+        </div>
+        <div class="rh-item">
+          <div class="rh-num">—</div>
+          <div class="rh-lbl">Facturas</div>
+        </div>
+      </div>
+
+      <div class="hist-tabs">
+        <button class="hist-tab active" onclick="switchTab('Citas',this)">📅 Citas</button>
+        <button class="hist-tab" onclick="switchTab('Recetas',this)">💊 Recetas</button>
+        <button class="hist-tab" onclick="switchTab('Pagos',this)">💳 Pagos</button>
+        <button class="hist-tab" onclick="switchTab('Facturas',this)">🧾 Facturas</button>
+      </div>
+      <div id="histCitas" class="hist-panel active">
+        <div class="hist-loading">Cargando...</div>
+      </div>
+      <div id="histRecetas" class="hist-panel">
+        <div class="hist-loading">Cargando...</div>
+      </div>
+      <div id="histPagos" class="hist-panel">
+        <div class="hist-loading">Cargando...</div>
+      </div>
+      <div id="histFacturas" class="hist-panel">
+        <div class="hist-loading">Cargando...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    AUTH.guard(['Administrador', 'Admin', 'Doctor', 'Recepcionista']);
+    AUTH.initSidebar('pacientes.html');
+
+    const API = 'http://localhost:5190/api';
+    const headers = AUTH.headers();
+    let allPacientes = [];
+
+    if (AUTH.esAdminORecep()) {
+      document.getElementById('topbarActions').innerHTML =
+        `<button class="btn-primary" onclick="openModal()">+ Nuevo Paciente</button>`;
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────────
+    function calcularEdad(fechaISO) {
+      if (!fechaISO) return '—';
+      const nacimiento = new Date(fechaISO + 'T00:00:00');
+      const hoy = new Date();
+      let edad = hoy.getFullYear() - nacimiento.getFullYear();
+      const m = hoy.getMonth() - nacimiento.getMonth();
+      if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+      return edad < 0 ? '—' : `${edad} años`;
+    }
+
+    function badgeCls(e) {
+      if (e === 'Completada') return 'badge-green';
+      if (e === 'Pendiente') return 'badge-yellow';
+      if (e === 'Cancelada') return 'badge-red';
+      if (e === 'Confirmada') return 'badge-teal';
+      return 'badge-blue';
+    }
+
+    function fmt(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleString('es-GT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    // ── Cargar y renderizar pacientes ─────────────────────────────────────────────
+    async function load() {
+      try {
+        const r = await fetch(`${API}/pacientes`, { headers });
+        if (!r.ok) throw new Error('No se pudieron cargar los pacientes');
+        allPacientes = await r.json();
+        render(allPacientes);
+      } catch (e) {
+        document.getElementById('grid').innerHTML = `<div style="color:#f87171">Error: ${e.message}</div>`;
+      }
+    }
+
+    function render(list) {
+      const g = document.getElementById('grid');
+      if (!list.length) {
+        g.innerHTML = '<div style="color:var(--muted);grid-column:1/-1">Sin pacientes registrados</div>';
+        return;
+      }
+      g.innerHTML = list.map((p, i) => {
+        const nombre = `${p.usuario?.nombre || ''} ${p.usuario?.apellido || ''}`.trim();
+        const ini = nombre.charAt(0) || 'P';
+        const puedeEditar = AUTH.esAdmin() || AUTH.esRecep() || AUTH.esDoctor();
+        return `<div class="patient-card" style="animation-delay:${i * 0.05}s">
+      <div class="card-top">
+        <div class="pat-avatar">${ini}</div>
+        <div>
+          <div class="pat-name">${nombre || 'Sin nombre'}</div>
+          <div class="pat-email">${p.usuario?.email || ''}</div>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-item"><div class="info-label">Edad</div><div class="info-value">${calcularEdad(p.fechaNacimiento)}</div></div>
+        <div class="info-item"><div class="info-label">Tipo Sangre</div><div class="info-value">${p.tipoSangre ? `<span class="blood-type">${p.tipoSangre}</span>` : '—'}</div></div>
+        <div class="info-item"><div class="info-label">Teléfono</div><div class="info-value">${p.telefono || '—'}</div></div>
+        <div class="info-item"><div class="info-label">Género</div><div class="info-value">${p.genero || '—'}</div></div>
+      </div>
+      ${p.alergias ? `<div style="margin-top:0.75rem;font-size:0.75rem;color:#f87171;background:rgba(248,113,113,0.1);padding:4px 10px;border-radius:8px">⚠ ${p.alergias}</div>` : ''}
+      <div class="card-actions">
+        <a href="citas.html" class="action-btn">📅 Citas</a>
+        ${puedeEditar
+            ? `<button class="action-btn" onclick="abrirHistorial(${p.pacienteId},'${nombre.replace(/'/g, "\\'")}')">📋 Historia</button>`
+            : ''}
+        ${puedeEditar
+            ? `<button class="btn-desactivar" onclick="toggleActivo(${p.usuario?.usuarioId},false,'${nombre.replace(/'/g, "\\'")}')">Desactivar</button>`
+            : ''}
+      </div>
+    </div>`;
+      }).join('');
+    }
+
+
+    let allDesactivados = [];
+
+    function toggleDesactivadosGrid() {
+      const grid = document.getElementById('desactivadosGrid');
+      const btn = document.querySelector('.section-toggle-btn');
+      const isOpen = grid.classList.toggle('open');
+      btn.textContent = isOpen ? '👁 Ocultar desactivados' : '👁 Ver pacientes desactivados';
+    }
+
+    async function cargarDesactivados() {
+      try {
+        const all = await fetch(`${API}/pacientes?incluirInactivos=true`, { headers }).then(r => r.json());
+        allDesactivados = all.filter(p => p.usuario?.activo === false);
+        const toggle = document.getElementById('toggleDesactivados');
+        const cnt = document.getElementById('countDesactivados');
+        if (allDesactivados.length > 0) {
+          toggle.style.display = 'flex';
+          cnt.textContent = `(${allDesactivados.length} desactivado${allDesactivados.length > 1 ? 's' : ''})`;
+        }
+        const grid = document.getElementById('desactivadosGrid');
+        grid.innerHTML = allDesactivados.map(p => {
+          const nombre = `${p.usuario?.nombre || ''} ${p.usuario?.apellido || ''}`.trim();
+          return `<div class="inactivo-card">
+        <div class="inactivo-nombre">🚫 ${nombre}</div>
+        <div class="inactivo-email">${p.usuario?.email || ''}</div>
+        <div style="margin-top:0.6rem">
+          <button class="btn-activar" onclick="toggleActivo(${p.usuario?.usuarioId},true,'${nombre.replace(/'/g, "\\'")}')">✓ Reactivar</button>
+        </div>
+      </div>`;
+        }).join('');
+      } catch (e) { console.warn('No se cargaron desactivados:', e); }
+    }
+
+    async function toggleActivo(usuarioId, activar, nombre) {
+      if (!usuarioId) return;
+      const accion = activar ? 'reactivar' : 'desactivar';
+      if (!confirm(`¿${activar ? 'Reactivar' : 'Desactivar'} a ${nombre}?`)) return;
+      try {
+        const res = await fetch(`${API}/auth/usuarios/${usuarioId}/activo`, {
+          method: 'PUT', headers,
+          body: JSON.stringify({ activo: activar })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        Validar.toast(`${nombre} ${activar ? 'reactivado' : 'desactivado'} ✓`, 'ok');
+        await load();
+        if (AUTH.esAdminORecep()) cargarDesactivados();
+        await cargarDesactivados();
+      } catch (e) { Validar.toast('Error: ' + e.message, 'error'); }
+    }
+
+    function filtrar() {
+      const q = document.querySelector('.search-input').value.toLowerCase();
+      render(allPacientes.filter(p =>
+        `${p.usuario?.nombre || ''} ${p.usuario?.apellido || ''} ${p.usuario?.email || ''}`.toLowerCase().includes(q)));
+    }
+
+    // ── Modal Nuevo Paciente ──────────────────────────────────────────────────────
+    function openModal() { document.getElementById('overlay').classList.add('show'); }
+    function closeModal() { document.getElementById('overlay').classList.remove('show'); }
+
+    async function guardar() {
+      const ok = Validar.validarFormulario({
+        inpNombre: Validar.reglas.nombre,
+        inpApellido: Validar.reglas.apellido,
+        inpEmail: Validar.reglas.email,
+        inpEmail2: Validar.reglas.email,
+        inpPassword: Validar.reglas.password,
+        inpPassword2: Validar.reglas.password,
+      });
+      const email1 = document.getElementById('inpEmail').value.trim();
+      const email2 = document.getElementById('inpEmail2').value.trim();
+      const pass1 = document.getElementById('inpPassword').value;
+      const pass2 = document.getElementById('inpPassword2').value;
+
+      if (!ok || email1 !== email2 || pass1 !== pass2) {
+        Validar.toast('Corrige los errores antes de continuar.', 'error'); return;
+      }
+
+      const body = {
+        nombre: document.getElementById('inpNombre').value.trim(),
+        apellido: document.getElementById('inpApellido').value.trim(),
+        email: email1,
+        password: pass1,
+        rolId: 3
+      };
+
+      try {
+        const res = await fetch(`${API}/auth/registro`, { method: 'POST', headers, body: JSON.stringify(body) });
+        if (res.ok) {
+          const userData = await res.json();
+          const clinico = {
+            fechaNacimiento: document.getElementById('inpNac').value || null,
+            genero: document.getElementById('inpGenero').value || null,
+            telefono: document.getElementById('inpTel').value || null,
+            tipoSangre: document.getElementById('inpSangre').value || null,
+            direccion: document.getElementById('inpDir').value || null,
+            alergias: document.getElementById('inpAlerg').value || null,
+          };
+          const pacientes = await fetch(`${API}/pacientes`, { headers }).then(r => r.json());
+          const nuevo = pacientes.find(p => p.usuarioId === userData.usuarioId);
+          if (nuevo && Object.values(clinico).some(v => v)) {
+            await fetch(`${API}/pacientes/${nuevo.pacienteId}`, { method: 'PUT', headers, body: JSON.stringify(clinico) });
+          }
+          Validar.toast('Paciente registrado ✓', 'ok');
+          closeModal();
+          ['inpNombre', 'inpApellido', 'inpEmail', 'inpEmail2', 'inpPassword', 'inpPassword2', 'inpNac', 'inpTel', 'inpDir', 'inpAlerg']
+            .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+          document.getElementById('inpGenero').value = '';
+          document.getElementById('inpSangre').value = '';
+          load();
+          if (AUTH.esAdminORecep()) cargarDesactivados();
+        } else {
+          Validar.toast('Error: ' + (await res.text() || 'Verifica los datos'), 'error');
+        }
+      } catch { Validar.toast('Error al conectar.', 'error'); }
+    }
+
+    // ── Validaciones en tiempo real formulario ────────────────────────────────────
+    (function bindRealtime() {
+      const email1 = document.getElementById('inpEmail');
+      const email2 = document.getElementById('inpEmail2');
+      const pass1 = document.getElementById('inpPassword');
+      const pass2 = document.getElementById('inpPassword2');
+      const paint = (el, ok, t, f) => { el.textContent = ok ? t : f; el.className = 'form-note ' + (ok ? 'ok' : 'bad'); };
+
+      email1.addEventListener('input', () => {
+        paint(document.getElementById('emailMsg'), Validar.reglas.email(email1.value), 'Correo válido', 'Correo inválido');
+        paint(document.getElementById('emailMsg2'), email2.value.trim() === email1.value.trim() && email2.value.trim() !== '', 'Correos coinciden', 'Los correos no coinciden');
+      });
+      email2.addEventListener('input', () =>
+        paint(document.getElementById('emailMsg2'), email1.value.trim() === email2.value.trim() && email2.value.trim() !== '', 'Correos coinciden', 'Los correos no coinciden'));
+      pass1.addEventListener('input', () => {
+        paint(document.getElementById('passMsg'), Validar.reglas.password(pass1.value), 'Contraseña válida', 'Contraseña débil');
+        paint(document.getElementById('passMsg2'), pass2.value === pass1.value && pass2.value !== '', 'Contraseñas coinciden', 'Las contraseñas no coinciden');
+      });
+      pass2.addEventListener('input', () =>
+        paint(document.getElementById('passMsg2'), pass1.value === pass2.value && pass2.value !== '', 'Contraseñas coinciden', 'Las contraseñas no coinciden'));
+    })();
+
+    // ── HISTORIAL CLÍNICO ────────────────────────────────────────────────────────
+    function closeHist() { document.getElementById('overlayHist').classList.remove('show'); }
+
+    function switchTab(nombre, btn) {
+      document.querySelectorAll('.hist-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.hist-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('hist' + nombre).classList.add('active');
+    }
+
+    async function abrirHistorial(pacienteId, nombrePaciente) {
+      // Abrir el modal y mostrar spinner
+      document.getElementById('histNombre').textContent = `📋 Historial — ${nombrePaciente}`;
+      document.getElementById('histResumen').innerHTML = `
+    <div class="rh-item"><div class="rh-num">…</div><div class="rh-lbl">Citas</div></div>
+    <div class="rh-item"><div class="rh-num">…</div><div class="rh-lbl">Recetas</div></div>
+    <div class="rh-item"><div class="rh-num">…</div><div class="rh-lbl">Pagado</div></div>
+    <div class="rh-item"><div class="rh-num">…</div><div class="rh-lbl">Facturas</div></div>`;
+      ['histCitas', 'histRecetas', 'histPagos', 'histFacturas'].forEach(id =>
+        document.getElementById(id).innerHTML = '<div class="hist-loading">⏳ Cargando...</div>');
+
+      // Resetear tabs
+      document.querySelectorAll('.hist-tab').forEach((b, i) => b.classList.toggle('active', i === 0));
+      document.querySelectorAll('.hist-panel').forEach((p, i) => p.classList.toggle('active', i === 0));
+      document.getElementById('overlayHist').classList.add('show');
+
+      try {
+        const res = await fetch(`${API}/pacientes/${pacienteId}/historial`, { headers });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const { citas = [], recetas = [], pagos = [], facturas = [], resumen = {} } = data;
+
+        // ── Resumen ──
+        document.getElementById('histResumen').innerHTML = `
+      <div class="rh-item"><div class="rh-num" style="color:var(--teal)">${resumen.totalCitas || 0}</div><div class="rh-lbl">Citas</div></div>
+      <div class="rh-item"><div class="rh-num" style="color:#a855f7">${resumen.totalRecetas || 0}</div><div class="rh-lbl">Recetas</div></div>
+      <div class="rh-item"><div class="rh-num" style="color:#34d399;font-size:1rem">Q${(resumen.totalPagado || 0).toFixed(0)}</div><div class="rh-lbl">Pagado</div></div>
+      <div class="rh-item"><div class="rh-num" style="color:#f59e0b">${resumen.totalFacturas || 0}</div><div class="rh-lbl">Facturas</div></div>`;
+
+        // ── Citas ──
+        document.getElementById('histCitas').innerHTML = citas.length
+          ? citas.map(c => `<div class="hist-item tipo-cita">
+          <div class="hist-meta">${fmt(c.fecha)}</div>
+          <div class="hist-title">Dr. ${c.doctor?.nombre || ''} ${c.doctor?.apellido || '—'} · ${c.doctor?.especialidad || '—'}</div>
+          <div class="hist-detail">${c.motivo || 'Sin motivo'}</div>
+          <span class="badge ${badgeCls(c.estado)}">${c.estado}</span>
+        </div>`).join('')
+          : '<p style="color:var(--muted);padding:1rem">Sin citas registradas.</p>';
+
+        // ── Recetas ──
+        document.getElementById('histRecetas').innerHTML = recetas.length
+          ? recetas.map(r => {
+            const meds = (r.medicamentos || []).map(m =>
+              `<span class="med-tag">${m.nombre || m.nombreLibre || '—'} ${m.dosis || ''}</span>`).join('');
+            return `<div class="hist-item tipo-receta">
+            <div class="hist-meta">${fmt(r.fecha)} · Dr. ${r.doctor?.nombre || ''} ${r.doctor?.apellido || '—'}</div>
+            ${r.observaciones ? `<div class="hist-detail" style="margin-bottom:6px">${r.observaciones}</div>` : ''}
+            <div>${meds || '<span style="color:var(--muted);font-size:0.78rem">Sin medicamentos</span>'}</div>
+          </div>`;
+          }).join('')
+          : '<p style="color:var(--muted);padding:1rem">Sin recetas registradas.</p>';
+
+        // ── Pagos ──
+        document.getElementById('histPagos').innerHTML = pagos.length
+          ? pagos.map(p => `<div class="hist-item tipo-pago">
+          <div class="hist-meta">${fmt(p.fecha)} · ${p.metodo || '—'}</div>
+          <div class="hist-title">Q ${(p.total || 0).toFixed(2)} — ${p.concepto || 'Pago'}</div>
+          <span class="badge badge-green">${p.estado || '—'}</span>
+        </div>`).join('')
+          : '<p style="color:var(--muted);padding:1rem">Sin pagos registrados.</p>';
+
+        // ── Facturas ──
+        document.getElementById('histFacturas').innerHTML = facturas.length
+          ? facturas.map(f => `<div class="hist-item tipo-factura">
+          <div class="hist-meta">${fmt(f.fecha)}</div>
+          <div class="hist-title">${f.numeroFactura || '—'} — Q ${(f.total || 0).toFixed(2)}</div>
+          <div class="hist-detail">${f.concepto || '—'}</div>
+        </div>`).join('')
+          : '<p style="color:var(--muted);padding:1rem">Sin facturas registradas.</p>';
+
+      } catch (e) {
+        ['histCitas', 'histRecetas', 'histPagos', 'histFacturas'].forEach(id =>
+          document.getElementById(id).innerHTML =
+          `<p style="color:#f87171;padding:1rem">Error al cargar historial: ${e.message}</p>`);
+      }
+    }
+
+    load();
+    if (AUTH.esAdminORecep()) cargarDesactivados();
+  </script>
+</body>
+
+</html>

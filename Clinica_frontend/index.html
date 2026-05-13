@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clínica Médica — Acceso</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #0fa8a0;
+    --teal-dark: #0a7a75;
+    --teal-glow: rgba(15,168,160,0.25);
+    --bg: #080f14;
+    --surface: #0e1a22;
+    --surface2: #152130;
+    --border: rgba(15,168,160,0.2);
+    --text: #e8f4f3;
+    --muted: #6a9a96;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(15,168,160,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15,168,160,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridMove 20s linear infinite;
+  }
+  @keyframes gridMove {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(60px); }
+  }
+
+  /* Floating orbs */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    animation: float 8s ease-in-out infinite;
+  }
+  .orb1 { width:400px; height:400px; background:#0fa8a0; top:-100px; right:-100px; animation-delay:0s; }
+  .orb2 { width:300px; height:300px; background:#0a4a8a; bottom:-80px; left:-80px; animation-delay:3s; }
+  .orb3 { width:200px; height:200px; background:#0fa8a0; bottom:20%; right:20%; animation-delay:6s; }
+  @keyframes float {
+    0%,100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-30px) scale(1.05); }
+  }
+
+  .login-wrapper {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 440px;
+    padding: 2rem;
+    animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  @keyframes slideUp {
+    from { opacity:0; transform: translateY(40px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+
+  .logo-area {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .logo-icon {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    box-shadow: 0 0 30px var(--teal-glow);
+    font-size: 26px;
+  }
+  .logo-area h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .logo-area span { color: var(--teal); }
+  .logo-area p { font-size: 0.8rem; color: var(--muted); margin-top: 4px; letter-spacing: 2px; text-transform: uppercase; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--teal), transparent);
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+  .card-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+
+  .field { margin-bottom: 1.2rem; }
+  .field label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+  .input-wrap {
+    position: relative;
+  }
+  .input-wrap svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    width: 18px; height: 18px;
+  }
+  .field input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.85rem 1rem 0.85rem 2.8rem;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .field input:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px var(--teal-glow);
+  }
+  .field input::placeholder { color: var(--muted); }
+
+  .btn-login {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px var(--teal-glow);
+    letter-spacing: 0.5px;
+  }
+  .btn-login::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--teal-glow); }
+  .btn-login:hover::before { opacity: 1; }
+  .btn-login:active { transform: translateY(0); }
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 1.5rem;
+    justify-content: center;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .status-dot {
+    width: 7px; height: 7px;
+    background: #00d4aa;
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(0,212,170,0.4); }
+    50% { box-shadow: 0 0 0 5px rgba(0,212,170,0); }
+  }
+
+  #error-msg {
+    background: rgba(220,38,38,0.1);
+    border: 1px solid rgba(220,38,38,0.3);
+    color: #f87171;
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    display: none;
+  }
+
+  .btn-login.loading {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<div class="login-wrapper">
+  <div class="logo-area">
+    <div class="logo-icon">🏥</div>
+    <h1>Clínica <span>Médica</span></h1>
+    <p>Sistema de Gestión Clínica</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Bienvenido</div>
+    <div class="card-sub">Ingresa tus credenciales para continuar</div>
+
+    <div id="error-msg"></div>
+
+    <div class="field">
+      <label>Correo Electrónico</label>
+      <div class="input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+        <input type="email" id="email" placeholder="doctor@clinica.com" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Contraseña</label>
+      <div class="input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <input type="password" id="password" placeholder="••••••••" />
+      </div>
+    </div>
+
+    <button class="btn-login" id="btnLogin" onclick="login()">
+      Iniciar Sesión →
+    </button>
+
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      Sistema en línea
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:5190/api';
+
+async function login() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('btnLogin');
+  const err = document.getElementById('error-msg');
+
+  // Validar email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email) { showError('El correo es requerido.'); return; }
+  if (!emailRegex.test(email)) { showError('Ingresa un correo válido (ejemplo@correo.com).'); return; }
+  if (!password) { showError('La contraseña es requerida.'); return; }
+  if (password.length < 6) { showError('La contraseña debe tener mínimo 6 caracteres.'); return; }
+
+  btn.classList.add('loading');
+  btn.innerHTML = '<span class="spinner"></span>Verificando...';
+  err.style.display = 'none';
+
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (!res.ok) throw new Error('Credenciales incorrectas.');
+    const data = await res.json();
+
+    localStorage.setItem('token',     data.token);
+    localStorage.setItem('rol',       data.rol);
+    localStorage.setItem('nombre',    data.nombre);
+    localStorage.setItem('apellido',  data.apellido  || '');
+    localStorage.setItem('usuarioId', data.usuarioId);
+    localStorage.setItem('doctorId',  data.doctorId  || '');
+    localStorage.setItem('pacienteId',data.pacienteId || '');
+
+    window.location.href = 'dashboard.html';
+  } catch (e) {
+    showError(e.message || 'Error al conectar con el servidor.');
+    btn.classList.remove('loading');
+    btn.innerHTML = 'Iniciar Sesión →';
+  }
+}
+
+function showError(msg) {
+  const err = document.getElementById('error-msg');
+  err.textContent = msg;
+  err.style.display = 'block';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') login();
+});
+</script>
+</body>
+</html>

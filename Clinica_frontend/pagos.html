@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagos — Clínica Médica</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <script src="auth.js"></script>
+  <script src="validaciones.js"></script>
+  <style>
+    :root {
+      --teal: #0fa8a0;
+      --teal-dark: #0a7a75;
+      --teal-glow: rgba(15, 168, 160, 0.2);
+      --bg: #080f14;
+      --surface: #0e1a22;
+      --surface2: #152130;
+      --surface3: #1c2e3e;
+      --border: rgba(15, 168, 160, 0.15);
+      --border2: rgba(255, 255, 255, 0.06);
+      --text: #e8f4f3;
+      --muted: #6a9a96;
+      --sidebar-w: 240px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-box {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .logo-text small {
+      display: block;
+      font-size: 0.65rem;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+    }
+
+    .nav-section {
+      padding: 1rem 0.75rem 0.5rem;
+    }
+
+    .nav-label {
+      font-size: 0.65rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.65rem 0.75rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.88rem;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 2px;
+    }
+
+    .nav-item:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: rgba(15, 168, 160, 0.15);
+      color: var(--teal);
+    }
+
+    .nav-item svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.6rem;
+      border-radius: 10px;
+      background: var(--surface2);
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .user-role {
+      font-size: 0.7rem;
+      color: var(--teal);
+    }
+
+    .btn-logout {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      color: #f87171;
+    }
+
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .topbar {
+      padding: 1.2rem 2rem;
+      border-bottom: 1px solid var(--border2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      flex-shrink: 0;
+      z-index: 50;
+    }
+
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 3px 12px var(--teal-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary-top {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary-top:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    .content {
+      padding: 2rem;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-mini {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stat-mini-icon {
+      font-size: 1.4rem;
+    }
+
+    .stat-mini-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .stat-mini-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .filters {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .search-input,
+    .filter-select {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      padding: 0.55rem 0.9rem;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus,
+    .filter-select:focus {
+      border-color: var(--teal);
+    }
+
+    .search-input {
+      min-width: 240px;
+    }
+
+    .filter-select option {
+      background: var(--surface2);
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border2);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      font-size: 0.85rem;
+    }
+
+    tr:last-child td {
+      border: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      display: inline-block;
+    }
+
+    .badge-green {
+      background: rgba(52, 211, 153, 0.15);
+      color: #34d399;
+    }
+
+    .badge-yellow {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+    }
+
+    .badge-blue {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+    }
+
+    .badge-purple {
+      background: rgba(168, 85, 247, 0.15);
+      color: #c084fc;
+    }
+
+    .badge-teal {
+      background: rgba(15, 168, 160, 0.15);
+      color: var(--teal);
+    }
+
+    .monto-cell {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #34d399;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 0;
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .modal-header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border2);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .modal-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .modal-body {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 1rem;
+    }
+
+    .form-field label {
+      font-size: 0.72rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .required-star {
+      color: #f87171;
+    }
+
+    .form-field input,
+    .form-field select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem 0.9rem;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      outline: none;
+      transition: all 0.25s;
+      width: 100%;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px var(--teal-glow);
+    }
+
+    .form-field input::placeholder {
+      color: var(--muted);
+    }
+
+    .form-field select option {
+      background: var(--surface2);
+    }
+
+    .cita-preview {
+      background: var(--surface2);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+    }
+
+    .cita-preview-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      padding: 4px 0;
+    }
+
+    .cita-preview-row:not(:last-child) {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .cp-label {
+      color: var(--muted);
+    }
+
+    .cp-val {
+      font-weight: 500;
+    }
+
+    .metodos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+
+    .metodo-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .metodo-btn:hover,
+    .metodo-btn.selected {
+      border-color: var(--teal);
+      background: rgba(15, 168, 160, 0.1);
+    }
+
+    .metodo-btn.selected {
+      box-shadow: 0 0 0 2px var(--teal);
+    }
+
+    .metodo-icon {
+      font-size: 1.3rem;
+      margin-bottom: 4px;
+    }
+
+    .metodo-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .metodo-btn.selected .metodo-label {
+      color: var(--teal);
+    }
+
+    .iva-preview {
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+      font-size: 0.83rem;
+    }
+
+    .iva-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+      color: var(--muted);
+    }
+
+    .iva-row.total-row {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      color: #34d399;
+      border-top: 1px solid var(--border2);
+      margin-top: 6px;
+      padding-top: 8px;
+    }
+
+    .modal-footer {
+      padding: 1.2rem 2rem;
+      border-top: 1px solid var(--border2);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .btn-cancel {
+      background: none;
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: all 0.2s;
+    }
+
+    .btn-cancel:hover {
+      border-color: var(--muted);
+      color: var(--text);
+    }
+
+    .btn-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .btn-close:hover {
+      color: var(--text);
+    }
+
+    .item-row {
+      display: grid;
+      grid-template-columns: 1fr 80px 30px;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      align-items: center;
+    }
+
+    .item-row select,
+    .item-row input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.6rem;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.83rem;
+      outline: none;
+      width: 100%;
+    }
+
+    .item-row select:focus,
+    .item-row input:focus {
+      border-color: var(--teal);
+    }
+
+    .item-row select option {
+      background: var(--surface2);
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="page-title">Gestión de Pagos</div>
+      <div style="display:flex;gap:0.75rem">
+        <button class="btn-secondary-top" onclick="openModalVenta()">+ Venta Medicamentos</button>
+        <button class="btn-primary" onclick="openModal()">+ Pago de Cita</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="stats-row">
+        <div class="stat-mini">
+          <div class="stat-mini-icon">💰</div>
+          <div>
+            <div class="stat-mini-label">Total Recaudado</div>
+            <div class="stat-mini-val" id="stTotal" style="color:#34d399">Q —</div>
+          </div>
+        </div>
+        <div class="stat-mini">
+          <div class="stat-mini-icon">📅</div>
+          <div>
+            <div class="stat-mini-label">Pagos Hoy</div>
+            <div class="stat-mini-val" id="stHoy">—</div>
+          </div>
+        </div>
+        <div class="stat-mini">
+          <div class="stat-mini-icon">💳</div>
+          <div>
+            <div class="stat-mini-label">Con Tarjeta</div>
+            <div class="stat-mini-val" id="stTarjeta">—</div>
+          </div>
+        </div>
+        <div class="stat-mini">
+          <div class="stat-mini-icon">💵</div>
+          <div>
+            <div class="stat-mini-label">Efectivo</div>
+            <div class="stat-mini-val" id="stEfectivo">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="filters">
+        <input type="text" class="search-input" placeholder="Buscar paciente o doctor..." oninput="filtrar()">
+        <select class="filter-select" id="filterMetodo" onchange="filtrar()">
+          <option value="">Todos los métodos</option>
+        </select>
+        <input type="date" class="filter-select" id="filterFecha" onchange="filtrar()">
+      </div>
+      <div class="panel">
+        <table>
+          <thead>
+            <tr>
+              <!-- ✅ FIX: Columnas completas igual al código funcional -->
+              <th>#</th>
+              <th>Paciente</th>
+              <th>Doctor</th>
+              <th>Fecha Cita</th>
+              <th>Método Pago</th>
+              <th>Subtotal</th>
+              <th>IVA 12%</th>
+              <th>Total</th>
+              <th>Fecha Pago</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="tablePagos">
+            <tr>
+              <td colspan="10" style="text-align:center;color:var(--muted);padding:3rem">Cargando...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══ MODAL PAGO DE CITA ═══ -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">💳 Registrar Pago de Cita</div>
+        <button class="btn-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label>Cita <span class="required-star">*</span></label>
+          <select id="selCita" onchange="onCitaChange()">
+            <option value="">— Selecciona una cita —</option>
+          </select>
+        </div>
+        <div class="cita-preview" id="citaPreview" style="display:none">
+          <div class="cita-preview-row"><span class="cp-label">Paciente</span><span class="cp-val"
+              id="cpPaciente">—</span></div>
+          <div class="cita-preview-row"><span class="cp-label">Doctor</span><span class="cp-val" id="cpDoctor">—</span>
+          </div>
+          <div class="cita-preview-row"><span class="cp-label">Fecha</span><span class="cp-val" id="cpFecha">—</span>
+          </div>
+          <div class="cita-preview-row"><span class="cp-label">Motivo</span><span class="cp-val" id="cpMotivo">—</span>
+          </div>
+        </div>
+
+        <!-- ✅ FIX: Método de pago ANTES del monto (como el código funcional) -->
+        <div class="form-field">
+          <label>Método de Pago <span class="required-star">*</span></label>
+        </div>
+        <div class="metodos-grid" id="metodosGridCita">
+          <div style="color:var(--muted);font-size:0.82rem">Cargando métodos...</div>
+        </div>
+        <input type="hidden" id="hidMetodo" value="">
+
+        <div class="form-field">
+          <label>Monto Consulta (Q) <span class="required-star">*</span></label>
+          <input type="number" id="inpMonto" placeholder="0.00" min="0" step="0.01" oninput="calcIVA()">
+        </div>
+        <div class="iva-preview">
+          <div class="iva-row"><span>Subtotal</span><span id="previewSub">Q 0.00</span></div>
+          <div class="iva-row"><span>IVA (12%)</span><span id="previewIva">Q 0.00</span></div>
+          <div class="iva-row total-row"><span>Total a cobrar</span><span id="previewTotal">Q 0.00</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button class="btn-primary" onclick="registrarPago()">✓ Confirmar Pago</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL VENTA DIRECTA MEDICAMENTOS ═══ -->
+  <div class="overlay" id="overlayVenta">
+    <div class="modal" style="max-width:520px">
+      <div class="modal-header">
+        <div class="modal-title">💊 Venta de Medicamentos</div>
+        <button class="btn-close" onclick="closeModalVenta()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div
+          style="background:rgba(15,168,160,0.08);border:1px solid rgba(15,168,160,0.2);border-radius:10px;padding:0.65rem 1rem;font-size:0.82rem;color:var(--teal);margin-bottom:1rem">
+          El paciente no necesita cita. La venta queda registrada en su historial automáticamente.
+        </div>
+        <div class="form-field">
+          <label>Paciente <span class="required-star">*</span></label>
+          <select id="selPacienteVenta">
+            <option value="">— Selecciona paciente —</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Método de Pago <span class="required-star">*</span></label>
+        </div>
+        <div class="metodos-grid" id="metodosGridVenta">
+          <div style="color:var(--muted);font-size:0.82rem">Cargando métodos...</div>
+        </div>
+        <input type="hidden" id="hidMetodoVenta" value="">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+          <label style="font-size:0.72rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Medicamentos
+            <span style="color:#f87171">*</span></label>
+          <button type="button" onclick="addItemVenta()"
+            style="background:rgba(15,168,160,0.1);border:1px solid rgba(15,168,160,0.3);color:var(--teal);padding:4px 10px;border-radius:8px;cursor:pointer;font-size:0.78rem">+
+            Agregar</button>
+        </div>
+        <div id="ventaItems"></div>
+        <div class="form-field" style="margin-top:0.75rem">
+          <label>Observaciones</label>
+          <input type="text" id="ventaObs" placeholder="Opcional...">
+        </div>
+        <div class="iva-preview" style="margin-top:0.5rem">
+          <div class="iva-row"><span>Subtotal estimado</span><span id="ventaSubPrev">Q 0.00</span></div>
+          <div class="iva-row"><span>IVA (12%)</span><span id="ventaIvaPrev">Q 0.00</span></div>
+          <div class="iva-row total-row"><span>Total estimado</span><span id="ventaTotalPrev">Q 0.00</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModalVenta()">Cancelar</button>
+        <button class="btn-primary" onclick="registrarVenta()">Registrar Venta</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    AUTH.guard(['Administrador', 'Admin', 'Recepcionista']);
+    AUTH.initSidebar('pagos.html');
+
+    const API = 'http://localhost:5190/api';
+    const headers = AUTH.headers();
+
+    let allPagos = [];
+    let allCitas = [];
+    let allMetodos = [];
+    let allMedicamentos = [];
+    let allPacientes = [];
+    let metodoSelIdCita = null;
+    let metodoSelIdVenta = null;
+
+    async function load() {
+      try {
+        const [resPagos, resCitas, resMet, resResumen] = await Promise.all([
+          fetch(`${API}/pagos`, { headers }),
+          fetch(`${API}/citas`, { headers }),
+          fetch(`${API}/pagos/metodos`, { headers }),
+          fetch(`${API}/pagos/resumen`, { headers }).catch(() => null),
+        ]);
+
+        allPagos = resPagos.ok ? await resPagos.json() : [];
+        allCitas = resCitas.ok ? await resCitas.json() : [];
+        allMetodos = resMet.ok ? await resMet.json() : [];
+        const resumen = resResumen?.ok ? await resResumen.json() : {};
+
+        // Stats
+        document.getElementById('stTotal').textContent = `Q ${(resumen.totalGeneral || allPagos.reduce((s, p) => s + (p.total || 0), 0)).toFixed(2)}`;
+        const hoy = new Date().toDateString();
+        document.getElementById('stHoy').textContent = resumen.countHoy ?? allPagos.filter(p => new Date(p.fechaPago).toDateString() === hoy).length;
+        document.getElementById('stTarjeta').textContent = allPagos.filter(p => p.metodoPago?.nombre?.includes('Tarjeta')).length;
+        document.getElementById('stEfectivo').textContent = allPagos.filter(p => p.metodoPago?.nombre === 'Efectivo').length;
+
+        // Citas sin pago
+        const citaIdsConPago = new Set(allPagos.filter(p => p.citaId).map(p => p.citaId));
+        const citasSinPago = allCitas.filter(c =>
+          (c.estado === 'Completada' || c.estado === 'Confirmada' || c.estado === 'En Curso') &&
+          !citaIdsConPago.has(c.citaId)
+        );
+        const sel = document.getElementById('selCita');
+        sel.innerHTML = '<option value="">— Selecciona una cita —</option>';
+        citasSinPago.forEach(c => {
+          const pac = `${c.paciente?.usuario?.nombre || ''} ${c.paciente?.usuario?.apellido || ''}`.trim();
+          const doc = `Dr. ${c.doctor?.usuario?.apellido || ''}`;
+          const fecha = new Date(c.fechaHora).toLocaleDateString('es-GT');
+          sel.innerHTML += `<option value="${c.citaId}"
+        data-pac="${pac}" data-doc="${doc}" data-fecha="${fecha}"
+        data-motivo="${c.motivo || '—'}" data-pacid="${c.pacienteId}"
+      >${pac} — ${doc} — ${fecha}</option>`;
+        });
+
+        // Filtro de métodos
+        const fm = document.getElementById('filterMetodo');
+        fm.innerHTML = '<option value="">Todos los métodos</option>';
+        allMetodos.forEach(m => fm.innerHTML += `<option value="${m.nombre}">${m.nombre}</option>`);
+
+        // ✅ FIX: Renderizar métodos dinámicos en ambos modales
+        const iconos = { 'Efectivo': '💵', 'Tarjeta de Crédito': '💳', 'Tarjeta de Débito': '💳', 'Transferencia Bancaria': '🏦', 'Transferencia': '📱' };
+        const metodoHTMLCita = allMetodos.map(m => `
+      <div class="metodo-btn" onclick="selMetodoCita(${m.metodoPagoId},this)">
+        <div class="metodo-icon">${iconos[m.nombre] || '💰'}</div>
+        <div class="metodo-label">${m.nombre}</div>
+      </div>`).join('');
+        document.getElementById('metodosGridCita').innerHTML = metodoHTMLCita || '<p style="color:var(--muted);font-size:0.82rem">Sin métodos</p>';
+
+        const metodoHTMLVenta = allMetodos.map(m => `
+      <div class="metodo-btn" onclick="selMetodoVenta(${m.metodoPagoId},this)">
+        <div class="metodo-icon">${iconos[m.nombre] || '💰'}</div>
+        <div class="metodo-label">${m.nombre}</div>
+      </div>`).join('');
+        document.getElementById('metodosGridVenta').innerHTML = metodoHTMLVenta || '<p style="color:var(--muted);font-size:0.82rem">Sin métodos</p>';
+
+        render(allPagos);
+      } catch (e) {
+        console.error(e);
+        document.getElementById('tablePagos').innerHTML =
+          `<tr><td colspan="10" style="text-align:center;color:#f87171;padding:2rem">Error: ${e.message}</td></tr>`;
+      }
+    }
+
+    // ✅ FIX PRINCIPAL: render() ahora lee p.cita directamente (igual al código funcional)
+    function render(list) {
+      const tb = document.getElementById('tablePagos');
+      if (!list.length) {
+        tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:3rem">Sin pagos registrados</td></tr>';
+        return;
+      }
+      tb.innerHTML = list.map(p => {
+        // Para pagos de cita usa cita→paciente; para ventas directas usa ventaDirecta→paciente
+        const pacUser = p.cita?.paciente?.usuario || p.ventaDirecta?.paciente?.usuario;
+        const pac = pacUser
+          ? `${pacUser.nombre || ''} ${pacUser.apellido || ''}`.trim()
+          : '—';
+        const doc = p.cita ? `Dr. ${p.cita?.doctor?.usuario?.apellido || '—'}` : '—';
+        const fCita = p.cita?.fechaHora
+          ? new Date(p.cita.fechaHora).toLocaleDateString('es-GT')
+          : p.ventaDirectaId ? 'Venta med.' : '—';
+        const metodo = p.metodoPago?.nombre || '—';
+        const badgeMet = metodo.includes('Tarjeta') ? 'badge-blue' :
+          metodo === 'Efectivo' ? 'badge-green' :
+            metodo.includes('Transferencia') ? 'badge-purple' : 'badge-teal';
+        return `<tr>
+      <td style="color:var(--muted);font-size:0.78rem">#${p.pagoId}</td>
+      <td>${pac}</td>
+      <td>${doc}</td>
+      <td style="font-size:0.78rem;color:var(--muted)">${fCita}</td>
+      <td><span class="badge ${badgeMet}">${metodo}</span></td>
+      <td>Q ${(p.monto || 0).toFixed(2)}</td>
+      <td style="color:var(--muted)">Q ${(p.impuesto || 0).toFixed(2)}</td>
+      <td class="monto-cell">Q ${(p.total || 0).toFixed(2)}</td>
+      <td style="font-size:0.78rem;color:var(--muted)">${new Date(p.fechaPago).toLocaleString('es-GT')}</td>
+      <td><span class="badge badge-green">${p.estado || 'Completado'}</span></td>
+    </tr>`;
+      }).join('');
+    }
+
+    // ✅ FIX: filtrar() también busca por doctor usando p.cita
+    function filtrar() {
+      const q = document.querySelector('.search-input').value.toLowerCase();
+      const met = document.getElementById('filterMetodo').value;
+      const fec = document.getElementById('filterFecha').value;
+      render(allPagos.filter(p => {
+        const pac = `${p.cita?.paciente?.usuario?.nombre || ''} ${p.cita?.paciente?.usuario?.apellido || ''}`.toLowerCase();
+        const doc = `${p.cita?.doctor?.usuario?.apellido || ''}`.toLowerCase();
+        const matchQ = pac.includes(q) || doc.includes(q) || `#${p.pagoId}`.includes(q);
+        const matchMet = !met || p.metodoPago?.nombre === met;
+        const matchFec = !fec || new Date(p.fechaPago).toLocaleDateString('en-CA') === fec;
+        return matchQ && matchMet && matchFec;
+      }));
+    }
+
+    function onCitaChange() {
+      const sel = document.getElementById('selCita');
+      const opt = sel.selectedOptions[0];
+      const prev = document.getElementById('citaPreview');
+      if (!sel.value) { prev.style.display = 'none'; return; }
+      document.getElementById('cpPaciente').textContent = opt.dataset.pac;
+      document.getElementById('cpDoctor').textContent = opt.dataset.doc;
+      document.getElementById('cpFecha').textContent = opt.dataset.fecha;
+      document.getElementById('cpMotivo').textContent = opt.dataset.motivo;
+      prev.style.display = 'block';
+    }
+
+    function calcIVA() {
+      const m = parseFloat(document.getElementById('inpMonto').value) || 0;
+      const iva = Math.round(m * 0.12 * 100) / 100;
+      document.getElementById('previewSub').textContent = `Q ${m.toFixed(2)}`;
+      document.getElementById('previewIva').textContent = `Q ${iva.toFixed(2)}`;
+      document.getElementById('previewTotal').textContent = `Q ${(m + iva).toFixed(2)}`;
+    }
+
+    function selMetodoCita(id, el) {
+      metodoSelIdCita = id;
+      document.getElementById('hidMetodo').value = id;
+      document.querySelectorAll('#metodosGridCita .metodo-btn').forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+    function selMetodoVenta(id, el) {
+      metodoSelIdVenta = id;
+      document.getElementById('hidMetodoVenta').value = id;
+      document.querySelectorAll('#metodosGridVenta .metodo-btn').forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    function openModal() { document.getElementById('overlay').classList.add('show'); }
+    function closeModal() {
+      document.getElementById('overlay').classList.remove('show');
+      document.getElementById('citaPreview').style.display = 'none';
+      document.getElementById('inpMonto').value = '';
+      calcIVA();
+      metodoSelIdCita = null;
+      document.querySelectorAll('#metodosGridCita .metodo-btn').forEach(b => b.classList.remove('selected'));
+    }
+
+    async function registrarPago() {
+      const citaId = document.getElementById('selCita').value;
+      const monto = document.getElementById('inpMonto').value;
+
+      if (!citaId) { Validar.marcarError('selCita', 'Selecciona una cita.'); return; }
+      if (Validar.validarCampo('inpMonto', Validar.reglas.monto) !== true) return;
+      if (!metodoSelIdCita) { Validar.toast('Selecciona un método de pago.', 'error'); return; }
+
+      try {
+        const res = await fetch(`${API}/pagos`, {
+          method: 'POST', headers,
+          body: JSON.stringify({
+            citaId: parseInt(citaId),
+            metodoPagoId: metodoSelIdCita,
+            monto: parseFloat(monto)
+          })
+        });
+        if (!res.ok) { const t = await res.text(); throw new Error(t); }
+        const d = await res.json();
+        Validar.toast(`Pago registrado — Total: Q${(d.total || 0).toFixed(2)} ✓`, 'ok');
+        closeModal();
+        load();
+      } catch (e) {
+        Validar.toast('Error: ' + e.message, 'error');
+      }
+    }
+
+    async function openModalVenta() {
+      if (!allPacientes.length) {
+        allPacientes = await fetch(`${API}/pacientes`, { headers }).then(r => r.json()).catch(() => []);
+        const sel = document.getElementById('selPacienteVenta');
+        sel.innerHTML = '<option value="">— Selecciona paciente —</option>';
+        allPacientes.forEach(p => {
+          sel.innerHTML += `<option value="${p.pacienteId}">${p.usuario?.nombre || ''} ${p.usuario?.apellido || ''}</option>`;
+        });
+      }
+      if (!allMedicamentos.length) {
+        allMedicamentos = await fetch(`${API}/medicamentos`, { headers }).then(r => r.json()).catch(() => []);
+      }
+      document.getElementById('ventaItems').innerHTML = '';
+      addItemVenta();
+      document.getElementById('overlayVenta').classList.add('show');
+    }
+
+    function closeModalVenta() {
+      document.getElementById('overlayVenta').classList.remove('show');
+      document.getElementById('ventaItems').innerHTML = '';
+      metodoSelIdVenta = null;
+      document.querySelectorAll('#metodosGridVenta .metodo-btn').forEach(b => b.classList.remove('selected'));
+    }
+
+    function addItemVenta() {
+      const c = document.getElementById('ventaItems');
+      const div = document.createElement('div');
+      div.className = 'item-row';
+      div.innerHTML = `
+    <select onchange="recalcVenta()">
+      <option value="">— Medicamento —</option>
+      ${allMedicamentos.map(m =>
+        `<option value="${m.medicamentoId}" data-precio="${m.precioUnitario}">
+          ${m.nombre} (stock: ${m.stock}) — Q${(m.precioUnitario || 0).toFixed(2)}
+        </option>`
+      ).join('')}
+    </select>
+    <input type="number" min="1" value="1" oninput="recalcVenta()">
+    <button type="button" onclick="this.parentElement.remove();recalcVenta()" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:1rem">✕</button>`;
+      c.appendChild(div);
+    }
+
+    function recalcVenta() {
+      let sub = 0;
+      document.querySelectorAll('#ventaItems .item-row').forEach(row => {
+        const sel = row.querySelector('select');
+        const inp = row.querySelector('input');
+        if (!sel?.value) return;
+        const precio = parseFloat(sel.selectedOptions[0]?.dataset?.precio || 0);
+        const cant = parseInt(inp?.value || 1);
+        sub += precio * cant;
+      });
+      const iva = Math.round(sub * 0.12 * 100) / 100;
+      document.getElementById('ventaSubPrev').textContent = `Q ${sub.toFixed(2)}`;
+      document.getElementById('ventaIvaPrev').textContent = `Q ${iva.toFixed(2)}`;
+      document.getElementById('ventaTotalPrev').textContent = `Q ${(sub + iva).toFixed(2)}`;
+    }
+
+    async function registrarVenta() {
+      const pacienteId = document.getElementById('selPacienteVenta').value;
+      if (!pacienteId) { Validar.toast('Selecciona un paciente.', 'error'); return; }
+      if (!metodoSelIdVenta) { Validar.toast('Selecciona un método de pago.', 'error'); return; }
+
+      const rows = document.querySelectorAll('#ventaItems .item-row');
+      const items = [];
+      for (const r of rows) {
+        const sel = r.querySelector('select');
+        const inp = r.querySelector('input');
+        if (!sel?.value) continue;
+        items.push({ medicamentoId: parseInt(sel.value), cantidad: parseInt(inp.value) || 1 });
+      }
+      if (!items.length) { Validar.toast('Agrega al menos un medicamento.', 'error'); return; }
+
+      try {
+        const res = await fetch(`${API}/ventas`, {
+          method: 'POST', headers,
+          body: JSON.stringify({
+            pacienteId: parseInt(pacienteId),
+            metodoPagoId: metodoSelIdVenta,
+            observaciones: document.getElementById('ventaObs').value || null,
+            items
+          })
+        });
+        if (!res.ok) { const t = await res.text(); throw new Error(t); }
+        const d = await res.json();
+        Validar.toast(`Venta registrada — Total: Q${(d.total || 0).toFixed(2)} ✓`, 'ok');
+        closeModalVenta();
+        load();
+      } catch (e) {
+        Validar.toast('Error: ' + e.message, 'error');
+      }
+    }
+
+    Validar.bindRealTime('inpMonto', Validar.reglas.monto);
+    load().then(() => {
+      // Si venimos desde recetas con ?paciente=ID&meds=ID:CANT,ID:CANT
+      const params = new URLSearchParams(window.location.search);
+      const pId = params.get('paciente');
+      const meds = params.get('meds');   // formato: "medId:cant,medId:cant"
+      const obs = params.get('obs');    // observacion (nombre receta)
+      if (pId) {
+        openModalVenta().then(() => {
+          // Pre-seleccionar paciente
+          const sel = document.getElementById('selPacienteVenta');
+          if (sel) sel.value = pId;
+          // Pre-llenar observación
+          if (obs) {
+            const obsEl = document.getElementById('ventaObs');
+            if (obsEl) obsEl.value = decodeURIComponent(obs);
+          }
+          // Pre-llenar medicamentos de la receta
+          if (meds) {
+            document.getElementById('ventaItems').innerHTML = '';
+            const lineas = meds.split(',');
+            lineas.forEach(linea => {
+              const [medId, cant] = linea.split(':');
+              if (!medId) return;
+              addItemVenta();
+              const rows = document.querySelectorAll('#ventaItems .item-row');
+              const lastRow = rows[rows.length - 1];
+              if (!lastRow) return;
+              const selMed = lastRow.querySelector('select');
+              const inpCant = lastRow.querySelector('input');
+              if (selMed) { selMed.value = medId; }
+              if (inpCant) { inpCant.value = cant || 1; }
+            });
+            recalcVenta();
+          }
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>

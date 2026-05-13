@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registrar Médico — Clínica Médica</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="auth.js"></script>
+<script src="validaciones.js"></script>
+<style>
+  :root{
+    --teal:#0fa8a0;--teal-dark:#0a7a75;--teal-glow:rgba(15,168,160,0.2);--bg:#080f14;
+    --surface:#0e1a22;--surface2:#152130;--surface3:#1c2e3e;--border:rgba(15,168,160,0.15);
+    --border2:rgba(255,255,255,0.06);--text:#e8f4f3;--muted:#6a9a96;--sidebar-w:240px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;overflow:hidden;}
+  .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;}
+  .sidebar-logo{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .logo-box{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 15px var(--teal-glow);}
+  .logo-text{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;line-height:1.2;}
+  .logo-text small{display:block;font-size:0.65rem;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400;}
+  .nav-section{padding:1rem 0.75rem 0.5rem;}
+  .nav-label{font-size:0.65rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:0 0.75rem;margin-bottom:0.4rem;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:0.65rem 0.75rem;border-radius:10px;cursor:pointer;transition:all 0.2s;font-size:0.88rem;color:var(--muted);text-decoration:none;margin-bottom:2px;}
+  .nav-item:hover{background:var(--surface2);color:var(--text);}
+  .nav-item.active{background:rgba(15,168,160,0.15);color:var(--teal);}
+  .nav-item svg{width:18px;height:18px;flex-shrink:0;}
+  .sidebar-footer{margin-top:auto;padding:1rem;border-top:1px solid var(--border);}
+  .user-card{display:flex;align-items:center;gap:10px;padding:0.6rem;border-radius:10px;background:var(--surface2);}
+  .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal-dark));display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:600;}
+  .user-info{flex:1;min-width:0;}
+  .user-name{font-size:0.85rem;font-weight:500;}
+  .user-role{font-size:0.7rem;color:var(--teal);}
+  .btn-logout{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:6px;transition:all 0.2s;}
+  .btn-logout:hover{color:#f87171;}
+  .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+  .topbar{padding:1.2rem 2rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:50;}
+  .page-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;}
+  .btn-back{background:none;border:1px solid var(--border2);color:var(--muted);padding:0.5rem 1rem;border-radius:10px;cursor:pointer;font-size:0.85rem;transition:all 0.2s;text-decoration:none;}
+  .btn-back:hover{border-color:var(--teal);color:var(--teal);}
+  .content{padding:2rem;flex:1;overflow-y:auto;display:flex;justify-content:center;}
+  .form-container{width:100%;max-width:760px;}
+  .section-card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:2rem;margin-bottom:1.5rem;position:relative;overflow:hidden;}
+  .section-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--teal),transparent);}
+  .section-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:0.3rem;display:flex;align-items:center;gap:8px;}
+  .section-sub{font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  .form-field{display:flex;flex-direction:column;gap:6px;}
+  .form-field.full{grid-column:1/-1;}
+  .form-field label{font-size:0.72rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:4px;}
+  .required-star{color:#f87171;}
+  .pass-wrap{position:relative;}
+  .pass-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;}
+  .pass-toggle:hover{color:var(--text);}
+  .pass-strength{height:3px;border-radius:2px;margin-top:6px;transition:all 0.3s;background:var(--surface3);width:0%;}
+  .form-field input,.form-field select,.form-field textarea{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:0.75rem 0.9rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;transition:all 0.25s;width:100%;}
+  .form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-glow);}
+  .form-note{font-size:0.72rem;color:var(--muted);}
+  .ok{color:#34d399;} .bad{color:#f87171;}
+  .steps{display:flex;align-items:center;gap:0;margin-bottom:2rem;}
+  .step{display:flex;align-items:center;gap:8px;font-size:0.8rem;}
+  .step-num{width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;transition:all 0.3s;flex-shrink:0;}
+  .step.active .step-num{background:var(--teal);border-color:var(--teal);box-shadow:0 0 10px var(--teal-glow);}
+  .step.done .step-num{background:rgba(52,211,153,0.2);border-color:#34d399;color:#34d399;}
+  .step-label{color:var(--muted);transition:color 0.3s;}
+  .step.active .step-label{color:var(--text);}
+  .step-line{flex:1;height:1px;background:var(--border2);margin:0 0.75rem;}
+  .btn-row{display:flex;justify-content:flex-end;gap:0.75rem;margin-top:1.5rem;}
+  .btn-primary{background:linear-gradient(135deg,var(--teal),var(--teal-dark));color:white;border:none;padding:0.75rem 2rem;border-radius:12px;font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 15px var(--teal-glow);}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px var(--teal-glow);}
+  .btn-primary:disabled{opacity:0.5;pointer-events:none;}
+  .btn-secondary{background:none;border:1px solid var(--border2);color:var(--muted);padding:0.75rem 1.5rem;border-radius:12px;cursor:pointer;font-size:0.88rem;transition:all 0.2s;}
+  .btn-secondary:hover{border-color:var(--muted);color:var(--text);}
+  .preview-card{background:var(--surface2);border-radius:16px;padding:1.5rem;display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;border:1px solid var(--border);}
+  .preview-avatar{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,var(--teal-dark),#0a4060);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;}
+  .preview-name{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;}
+  .preview-spec{font-size:0.8rem;color:var(--teal);}
+  .preview-email{font-size:0.75rem;color:var(--muted);}
+  .preview-details{font-size:0.78rem;color:var(--muted);margin-top:4px;}
+  .success-screen{text-align:center;padding:3rem;display:none;}
+  .success-icon{font-size:4rem;margin-bottom:1rem;animation:pop 0.5s cubic-bezier(0.16,1,0.3,1);}
+  @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+  .success-title{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;}
+  .success-sub{color:var(--muted);margin-bottom:2rem;}
+  .access-denied{text-align:center;padding:4rem 2rem;}
+  .access-denied .icon{font-size:3rem;margin-bottom:1rem;}
+  .access-denied h2{font-family:'Syne',sans-serif;font-size:1.3rem;margin-bottom:0.5rem;}
+  .access-denied p{color:var(--muted);font-size:0.9rem;}
+  /* Horario por día */
+  .day-schedule-list{display:flex;flex-direction:column;gap:0.5rem;margin-top:0.75rem;}
+  .day-row{display:flex;align-items:center;gap:0.75rem;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:0.6rem 0.8rem;flex-wrap:wrap;}
+  .day-check{width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0;}
+  .day-name{font-size:0.85rem;min-width:90px;}
+  .time-inp{background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.6rem;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;width:110px;}
+  .time-inp:focus{border-color:var(--teal);}
+  .day-sep{color:var(--muted);font-size:0.8rem;}
+  .slot-sel{background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.6rem;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;}
+  .slot-sel:focus{border-color:var(--teal);}
+  .day-row.disabled{opacity:0.4;}
+  ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar"></aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">Registrar Nuevo Médico</div>
+    <a href="doctores.html" class="btn-back">← Volver a Doctores</a>
+  </div>
+
+  <div class="content">
+    <div class="form-container" id="formContainer">
+
+      <div class="access-denied" id="accessDenied" style="display:none">
+        <div class="icon">🔒</div>
+        <h2>Acceso Restringido</h2>
+        <p>Solo los administradores pueden registrar nuevos médicos.</p>
+      </div>
+
+      <div class="steps" id="stepsBar">
+        <div class="step active" id="step1"><div class="step-num">1</div><div class="step-label">Cuenta</div></div>
+        <div class="step-line"></div>
+        <div class="step" id="step2"><div class="step-num">2</div><div class="step-label">Perfil Médico</div></div>
+        <div class="step-line"></div>
+        <div class="step" id="step3"><div class="step-num">3</div><div class="step-label">Confirmar</div></div>
+      </div>
+
+      <!-- ── Paso 1: Cuenta ── -->
+      <div class="section-card" id="seccion1">
+        <div class="section-title">👤 Datos de la Cuenta</div>
+        <div class="section-sub">Información de acceso al sistema para el médico.</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Nombre <span class="required-star">*</span></label>
+            <input type="text" id="inpNombre" placeholder="Ej: Carlos">
+          </div>
+          <div class="form-field">
+            <label>Apellido <span class="required-star">*</span></label>
+            <input type="text" id="inpApellido" placeholder="Ej: Ramírez">
+          </div>
+          <div class="form-field full">
+            <label>Correo Electrónico <span class="required-star">*</span></label>
+            <input type="email" id="inpEmail" placeholder="doctor@clinica.com">
+            <small id="emailMsg" class="form-note"></small>
+          </div>
+          <div class="form-field full">
+            <label>Confirmar Correo Electrónico <span class="required-star">*</span></label>
+            <input type="email" id="inpEmail2" placeholder="repite el correo">
+            <small id="emailMsg2" class="form-note"></small>
+          </div>
+          <div class="form-field">
+            <label>Contraseña <span class="required-star">*</span></label>
+            <div class="pass-wrap">
+              <input type="password" id="inpPassword" placeholder="Mínimo 6 caracteres">
+              <button type="button" class="pass-toggle" onclick="togglePass('inpPassword',this)">👁</button>
+            </div>
+            <div class="pass-strength" id="strength1"></div>
+            <small id="passMsg" class="form-note"></small>
+          </div>
+          <div class="form-field">
+            <label>Confirmar Contraseña <span class="required-star">*</span></label>
+            <div class="pass-wrap">
+              <input type="password" id="inpConfirm" placeholder="Repite la contraseña">
+              <button type="button" class="pass-toggle" onclick="togglePass('inpConfirm',this)">👁</button>
+            </div>
+            <small id="passMsg2" class="form-note"></small>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="irSeccion2()">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- ── Paso 2: Perfil Médico ── -->
+      <div class="section-card" id="seccion2" style="display:none">
+        <div class="section-title">🩺 Perfil Médico</div>
+        <div class="section-sub">Especialidad, datos profesionales y horario de atención.</div>
+        <div class="form-grid">
+          <div class="form-field full">
+            <label>Especialidad <span class="required-star">*</span></label>
+            <select id="inpEspecialidad">
+              <option value="">Cargando especialidades...</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>N° de Licencia <span class="required-star">*</span></label>
+            <input type="text" id="inpLicencia" placeholder="Ej: COL-12345">
+          </div>
+          <div class="form-field">
+            <label>Teléfono</label>
+            <input type="text" id="inpTel" placeholder="Ej: 5555-1234">
+          </div>
+          <div class="form-field full">
+            <label>Duración de cada consulta (slot) <span class="required-star">*</span></label>
+            <select id="inpSlotMin">
+              <option value="30">30 minutos</option>
+              <option value="60">60 minutos</option>
+              <option value="20">20 minutos</option>
+              <option value="45">45 minutos</option>
+            </select>
+          </div>
+          <!-- Horario por día -->
+          <div class="form-field full">
+            <label>Horario de atención <span class="required-star">*</span></label>
+            <div class="day-schedule-list" id="dayScheduleList">
+              <!-- generado por JS -->
+            </div>
+            <small class="form-note" style="margin-top:6px">Activa los días que trabaja y define el horario de entrada y salida.</small>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-secondary" onclick="irSeccion1()">← Atrás</button>
+          <button class="btn-primary" onclick="irSeccion3()">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- ── Paso 3: Confirmar ── -->
+      <div class="section-card" id="seccion3" style="display:none">
+        <div class="section-title">✅ Confirmar Registro</div>
+        <div class="section-sub">Revisa los datos antes de guardar.</div>
+        <div class="preview-card">
+          <div class="preview-avatar">👨‍⚕️</div>
+          <div>
+            <div class="preview-name" id="prevNombre">—</div>
+            <div class="preview-spec" id="prevEspec">—</div>
+            <div class="preview-email" id="prevEmail">—</div>
+            <div class="preview-details">Licencia: <span id="prevLicencia">—</span> · Tel: <span id="prevTel">—</span></div>
+            <div class="preview-details">Slot: <span id="prevSlot">—</span> min · Horario: <span id="prevHorario">—</span></div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-secondary" onclick="irSeccion2()">← Atrás</button>
+          <button class="btn-primary" id="btnGuardar" onclick="guardar()">✓ Registrar Médico</button>
+        </div>
+      </div>
+
+      <div class="success-screen" id="successScreen">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">¡Médico Registrado!</div>
+        <div class="success-sub" id="successMsg">El médico fue agregado correctamente.</div>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+          <button class="btn-primary" onclick="resetForm()">+ Registrar otro médico</button>
+          <a href="doctores.html" class="btn-secondary" style="padding:0.75rem 1.5rem;border-radius:12px;text-decoration:none;color:var(--muted);border:1px solid var(--border2)">Ver lista de doctores</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script>
+AUTH.guard(['Administrador']);
+AUTH.initSidebar('registro-medico.html');
+
+const API = 'http://localhost:5190/api';
+const headers = AUTH.headers();
+const rol = AUTH.rol();
+
+// ── Mapeo día español → número DayOfWeek (0=Dom, 1=Lun … 6=Sab) ──────────
+const DIAS_SEMANA = [
+  { label: 'Lunes',      num: 1 },
+  { label: 'Martes',     num: 2 },
+  { label: 'Miércoles',  num: 3 },
+  { label: 'Jueves',     num: 4 },
+  { label: 'Viernes',    num: 5 },
+  { label: 'Sábado',     num: 6 },
+  { label: 'Domingo',    num: 0 },
+];
+
+// ── Acceso denegado ───────────────────────────────────────────────────────
+if (rol !== 'Administrador' && rol !== 'Admin') {
+  document.getElementById('stepsBar').style.display = 'none';
+  document.getElementById('seccion1').style.display = 'none';
+  document.getElementById('accessDenied').style.display = 'block';
+}
+
+// ── Especialidades ────────────────────────────────────────────────────────
+async function cargarEspecialidades() {
+  try {
+    const res = await fetch(`${API}/especialidades`, { headers });
+    if (!res.ok) throw new Error();
+    const esp = await res.json();
+    const sel = document.getElementById('inpEspecialidad');
+    sel.innerHTML = '<option value="">— Selecciona una especialidad —</option>';
+    esp.forEach(e => sel.insertAdjacentHTML('beforeend',
+      `<option value="${e.especialidadId}">${e.nombre}</option>`));
+  } catch {
+    document.getElementById('inpEspecialidad').innerHTML =
+      '<option value="">Error al cargar especialidades</option>';
+  }
+}
+
+// ── Renderizar grilla de días con horario ─────────────────────────────────
+function buildDaySchedule() {
+  const container = document.getElementById('dayScheduleList');
+  container.innerHTML = DIAS_SEMANA.map(d => `
+    <div class="day-row" id="drow-${d.num}">
+      <input type="checkbox" class="day-check" id="chk-${d.num}" data-num="${d.num}"
+        onchange="toggleDayRow(${d.num})">
+      <label for="chk-${d.num}" class="day-name">${d.label}</label>
+      <input type="time" class="time-inp" id="ini-${d.num}" value="08:00" disabled>
+      <span class="day-sep">–</span>
+      <input type="time" class="time-inp" id="fin-${d.num}" value="17:00" disabled>
+    </div>`).join('');
+}
+
+function toggleDayRow(num) {
+  const chk = document.getElementById(`chk-${num}`);
+  const row = document.getElementById(`drow-${num}`);
+  document.getElementById(`ini-${num}`).disabled = !chk.checked;
+  document.getElementById(`fin-${num}`).disabled = !chk.checked;
+  row.classList.toggle('disabled', !chk.checked);
+}
+
+// ── Leer días seleccionados con sus horarios ──────────────────────────────
+function getDiasHorario() {
+  return DIAS_SEMANA
+    .filter(d => document.getElementById(`chk-${d.num}`)?.checked)
+    .map(d => ({
+      diaSemana: d.num,
+      horaInicio: document.getElementById(`ini-${d.num}`).value, // "HH:MM"
+      horaFin:    document.getElementById(`fin-${d.num}`).value,
+      label:      d.label
+    }));
+}
+
+function resumenHorario(dias) {
+  if (!dias.length) return '—';
+  return dias.map(d => `${d.label} ${d.horaInicio}-${d.horaFin}`).join(' | ');
+}
+
+if (rol === 'Administrador' || rol === 'Admin') {
+  cargarEspecialidades();
+  buildDaySchedule();
+}
+
+// ── Password ──────────────────────────────────────────────────────────────
+document.getElementById('inpPassword').addEventListener('input', function() {
+  const v = this.value;
+  let score = 0;
+  if (v.length >= 6)  score++;
+  if (v.length >= 10) score++;
+  if (/[A-Z]/.test(v)) score++;
+  if (/\d/.test(v))    score++;
+  if (/[^A-Za-z0-9]/.test(v)) score++;
+  const colors = ['','#f87171','#f59e0b','#fbbf24','#34d399','#0fa8a0'];
+  const widths  = ['0%','25%','40%','60%','80%','100%'];
+  const bar = document.getElementById('strength1');
+  bar.style.background = colors[score] || 'var(--surface3)';
+  bar.style.width = widths[score];
+  document.getElementById('passMsg').textContent = v.length >= 6 ? 'Contraseña aceptable' : 'Mínimo 6 caracteres';
+  document.getElementById('passMsg').className = 'form-note ' + (v.length >= 6 ? 'ok' : 'bad');
+});
+
+function togglePass(id, btn) {
+  const el = document.getElementById(id);
+  el.type = el.type === 'password' ? 'text' : 'password';
+  btn.textContent = el.type === 'password' ? '👁' : '🙈';
+}
+
+// ── Steps ─────────────────────────────────────────────────────────────────
+function setStep(n) {
+  [1,2,3].forEach(i => {
+    const s = document.getElementById(`step${i}`);
+    s.classList.remove('active','done');
+    if (i < n) s.classList.add('done');
+    if (i === n) s.classList.add('active');
+    const sec = document.getElementById(`seccion${i}`);
+    if (sec) sec.style.display = i === n ? 'block' : 'none';
+  });
+}
+
+function paint(msgEl, ok, okText, badText) {
+  msgEl.textContent = ok ? okText : badText;
+  msgEl.className = 'form-note ' + (ok ? 'ok' : 'bad');
+}
+
+// ── Validaciones en tiempo real ───────────────────────────────────────────
+function validarEmailReal(id, msgId) {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () =>
+    paint(document.getElementById(msgId), Validar.reglas.email(el.value), 'Correo válido', 'Correo inválido'));
+}
+function validarCoincidencia(id1, id2, msgId, ok, bad) {
+  const a = document.getElementById(id1), b = document.getElementById(id2);
+  const check = () => paint(document.getElementById(msgId),
+    a.value.trim() !== '' && a.value.trim() === b.value.trim(), ok, bad);
+  a.addEventListener('input', check);
+  b.addEventListener('input', check);
+}
+
+validarEmailReal('inpEmail', 'emailMsg');
+validarEmailReal('inpEmail2', 'emailMsg2');
+validarCoincidencia('inpEmail', 'inpEmail2', 'emailMsg2', 'Correos coinciden', 'Los correos no coinciden');
+validarCoincidencia('inpPassword', 'inpConfirm', 'passMsg2', 'Contraseñas coinciden', 'Las contraseñas no coinciden');
+
+if (typeof Validar !== 'undefined' && Validar.bindRealTime) {
+  Validar.bindRealTime('inpNombre',   Validar.reglas.nombre);
+  Validar.bindRealTime('inpApellido', Validar.reglas.apellido);
+  Validar.bindRealTime('inpEmail',    Validar.reglas.email);
+  Validar.bindRealTime('inpPassword', Validar.reglas.password);
+  Validar.bindRealTime('inpLicencia', Validar.reglas.licencia);
+}
+
+// ── Navegación ────────────────────────────────────────────────────────────
+function irSeccion2() {
+  const e1 = document.getElementById('inpEmail').value.trim();
+  const e2 = document.getElementById('inpEmail2').value.trim();
+  const p1 = document.getElementById('inpPassword').value;
+  const p2 = document.getElementById('inpConfirm').value;
+
+  if (!document.getElementById('inpNombre').value.trim() ||
+      !document.getElementById('inpApellido').value.trim()) {
+    Validar.toast('Completa nombre y apellido.', 'error'); return;
+  }
+  if (!Validar.esEmail(e1)){ Validar.toast('Correo inválido.', 'error'); return; }
+  if (e1 !== e2) { Validar.toast('Los correos no coinciden.', 'error'); return; }
+  if (p1.length < 6) { Validar.toast('La contraseña debe tener al menos 6 caracteres.', 'error'); return; }
+  if (p1 !== p2) { Validar.toast('Las contraseñas no coinciden.', 'error'); return; }
+  setStep(2);
+}
+
+function irSeccion1() { setStep(1); }
+
+function irSeccion3() {
+  const espVal = document.getElementById('inpEspecialidad').value;
+  const licVal = document.getElementById('inpLicencia').value.trim();
+  if (!espVal)   { Validar.toast('Selecciona una especialidad.', 'error'); return; }
+  if (!licVal)   { Validar.toast('El número de licencia es requerido.', 'error'); return; }
+
+  const dias = getDiasHorario();
+  if (!dias.length) { Validar.toast('Selecciona al menos un día de atención.', 'error'); return; }
+
+  // Validar que horas sean coherentes
+  for (const d of dias) {
+    if (d.horaInicio >= d.horaFin) {
+      Validar.toast(`La hora de fin del ${d.label} debe ser mayor a la de inicio.`, 'error'); return;
+    }
+  }
+
+  const espNombre = document.getElementById('inpEspecialidad').selectedOptions[0]?.text || '—';
+  document.getElementById('prevNombre').textContent  = `Dr. ${document.getElementById('inpNombre').value} ${document.getElementById('inpApellido').value}`;
+  document.getElementById('prevEspec').textContent   = espNombre;
+  document.getElementById('prevEmail').textContent   = document.getElementById('inpEmail').value;
+  document.getElementById('prevLicencia').textContent = licVal;
+  document.getElementById('prevTel').textContent     = document.getElementById('inpTel').value || 'No especificado';
+  document.getElementById('prevSlot').textContent    = document.getElementById('inpSlotMin').value;
+  document.getElementById('prevHorario').textContent = resumenHorario(dias);
+  setStep(3);
+}
+
+// ── Guardar: registro doctor + horarios ───────────────────────────────────
+async function guardar() {
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true;
+  btn.textContent = 'Registrando...';
+
+  try {
+    // 1. Registrar el doctor
+    const body = {
+      nombre:         document.getElementById('inpNombre').value.trim(),
+      apellido:       document.getElementById('inpApellido').value.trim(),
+      email:          document.getElementById('inpEmail').value.trim(),
+      password:       document.getElementById('inpPassword').value,
+      especialidadId: parseInt(document.getElementById('inpEspecialidad').value),
+      numeroLicencia: document.getElementById('inpLicencia').value.trim(),
+      telefono:       document.getElementById('inpTel').value.trim() || null,
+    };
+
+    const res = await fetch(`${API}/auth/registro-doctor`, {
+      method: 'POST', headers, body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(errText || 'Error al registrar el médico.');
+    }
+
+    const { doctorId } = await res.json();
+
+    // 2. Guardar cada horario día por día vía POST /api/horarios
+    const dias  = getDiasHorario();
+    const slot  = parseInt(document.getElementById('inpSlotMin').value);
+    const horErrors = [];
+
+    for (const d of dias) {
+      try {
+        const hr = await fetch(`${API}/horarios`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            doctorId,
+            diaSemana:      d.diaSemana,
+            horaInicio:     d.horaInicio,  // "HH:MM" — el backend acepta TimeOnly
+            horaFin:        d.horaFin,
+            duracionSlotMin: slot,
+            activo:         true
+          })
+        });
+        if (!hr.ok) horErrors.push(d.label);
+      } catch {
+        horErrors.push(d.label);
+      }
+    }
+
+    // 3. Mostrar resultado
+    let msg = `Dr. ${body.nombre} ${body.apellido} registrado como ${document.getElementById('inpEspecialidad').selectedOptions[0]?.text||''}.`;
+    if (horErrors.length) msg += ` ⚠️ No se guardaron horarios de: ${horErrors.join(', ')}.`;
+    else msg += ` Horarios configurados correctamente.`;
+
+    document.getElementById('seccion3').style.display = 'none';
+    document.getElementById('stepsBar').style.display = 'none';
+    document.getElementById('successScreen').style.display = 'block';
+    document.getElementById('successMsg').textContent = msg;
+
+  } catch(e) {
+    Validar.toast(e.message || 'Error al registrar el médico.', 'error');
+    btn.disabled = false;
+    btn.textContent = '✓ Registrar Médico';
+  }
+}
+
+function resetForm() {
+  document.getElementById('successScreen').style.display = 'none';
+  document.getElementById('stepsBar').style.display = 'flex';
+  ['inpNombre','inpApellido','inpEmail','inpEmail2','inpPassword','inpConfirm','inpLicencia','inpTel']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('strength1').style.width = '0%';
+  document.getElementById('inpEspecialidad').value = '';
+  document.getElementById('inpSlotMin').value = '30';
+  ['emailMsg','emailMsg2','passMsg','passMsg2'].forEach(id =>
+    { const el = document.getElementById(id); if (el) el.textContent = ''; });
+  // Reset horarios
+  buildDaySchedule();
+  setStep(1);
+}
+</script>
+</body>
+</html>

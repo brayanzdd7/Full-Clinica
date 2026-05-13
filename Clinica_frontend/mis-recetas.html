@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mis recetas — Clínica Médica</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="auth.js"></script>
+<style>
+  :root{--teal:#0fa8a0;--teal-dark:#0a7a75;--teal-glow:rgba(15,168,160,0.2);--bg:#080f14;--surface:#0e1a22;--surface2:#152130;--border:rgba(15,168,160,0.15);--border2:rgba(255,255,255,0.06);--text:#e8f4f3;--muted:#6a9a96;--sidebar-w:240px;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;overflow:hidden;}
+  .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border2);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;}
+  .sidebar-logo{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .logo-box{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .logo-text{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;line-height:1.2;}
+  .logo-text small{display:block;font-size:0.65rem;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400;}
+  .nav-section{padding:1rem 0.75rem 0.5rem;}
+  .nav-label{font-size:0.65rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:0 0.75rem;margin-bottom:0.4rem;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:0.65rem 0.75rem;border-radius:10px;cursor:pointer;transition:all 0.2s;font-size:0.88rem;color:var(--muted);text-decoration:none;margin-bottom:2px;}
+  .nav-item:hover{background:var(--surface2);color:var(--text);}
+  .nav-item.active{background:rgba(15,168,160,0.15);color:var(--teal);}
+  .nav-item svg{width:18px;height:18px;flex-shrink:0;}
+  .sidebar-footer{margin-top:auto;padding:1rem;border-top:1px solid var(--border);}
+  .user-card{display:flex;align-items:center;gap:10px;padding:0.6rem;border-radius:10px;background:var(--surface2);}
+  .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal-dark));display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:600;flex-shrink:0;}
+  .user-info{flex:1;min-width:0;}
+  .user-name{font-size:0.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .user-role{font-size:0.7rem;color:var(--teal);}
+  .btn-logout{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:6px;transition:all 0.2s;}
+  .btn-logout:hover{color:#f87171;}
+  .main{margin-left:var(--sidebar-w);flex:1;padding:2rem;height:100vh;overflow-y:auto;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+  .page-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;}
+  .panel{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:1.5rem;}
+  .receta-card{background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:1.2rem;margin-bottom:1rem;transition:border-color 0.2s;}
+  .receta-card:hover{border-color:var(--border);}
+  .receta-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.75rem;gap:1rem;}
+  .receta-meta{font-size:0.78rem;color:var(--muted);}
+  .receta-doctor{font-size:0.9rem;font-weight:500;}
+  .receta-num{font-size:0.68rem;padding:3px 10px;border-radius:20px;background:rgba(15,168,160,0.1);border:1px solid var(--border);color:var(--teal);white-space:nowrap;}
+  .receta-obs{font-size:0.83rem;color:var(--muted);margin-bottom:0.75rem;padding:0.5rem 0.75rem;background:rgba(255,255,255,0.03);border-radius:8px;border-left:2px solid var(--border);}
+  .med-list{display:flex;flex-direction:column;gap:0.4rem;}
+  .med-item{display:flex;align-items:flex-start;gap:10px;padding:0.5rem 0.7rem;background:rgba(255,255,255,0.03);border-radius:8px;font-size:0.83rem;}
+  .med-icon{flex-shrink:0;font-size:0.9rem;}
+  .med-nombre{font-weight:500;}
+  .med-nombre.libre{color:#c084fc;}  /* Texto libre en púrpura para diferenciar */
+  .med-detail{font-size:0.75rem;color:var(--muted);margin-top:2px;}
+  .badge-libre{font-size:0.65rem;padding:1px 6px;border-radius:10px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.2);color:#c084fc;margin-left:6px;vertical-align:middle;}
+  .empty-state{text-align:center;padding:3rem;color:var(--muted);}
+  .empty-state .icon{font-size:2.5rem;margin-bottom:0.75rem;}
+
+  @media print {
+    .sidebar, .topbar { display: none !important; }
+    body { background: white !important; color: #111 !important; }
+    .main { margin-left: 0 !important; }
+    .receta-card { border: 1px solid #ccc !important; background: white !important; break-inside: avoid; margin-bottom: 1rem; }
+    .receta-doctor { color: #111 !important; }
+    .receta-meta, .med-detail { color: #555 !important; }
+    .receta-num { background: #eee !important; color: #333 !important; border: 1px solid #ccc !important; }
+    .receta-obs { background: #f9f9f9 !important; border-left: 2px solid #aaa !important; color: #444 !important; }
+    .med-item { background: #f5f5f5 !important; }
+    .badge-libre { background: #ede !important; color: #808 !important; }
+  }
+  .btn-print { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 0.5rem 1rem; border-radius: 10px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+  .btn-print:hover { border-color: var(--teal); color: var(--teal); }
+  ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar"></aside>
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">💊 Mis Recetas</div>
+    <button class="btn-print" onclick="window.print()">🖨 Imprimir</button>
+  </div>
+  <div id="cont">
+    <div style="color:var(--muted);padding:2rem;text-align:center">Cargando...</div>
+  </div>
+</main>
+<script>
+AUTH.guard(['Paciente']);
+AUTH.initSidebar('mis-recetas.html');
+
+const API = 'http://localhost:5190/api';
+const headers = AUTH.headers();
+const pid = AUTH.pacienteId();
+
+if (!pid) {
+  document.getElementById('cont').innerHTML =
+    '<p style="color:#f87171;padding:2rem">No hay perfil de paciente asociado a tu cuenta.</p>';
+} else {
+  fetch(`${API}/recetas/paciente/${pid}`, { headers })
+    .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+    .then(list => {
+      const cont = document.getElementById('cont');
+      if (!list.length) {
+        cont.innerHTML = `<div class="empty-state"><div class="icon">💊</div><p>Aún no tienes recetas registradas.</p></div>`;
+        return;
+      }
+      cont.innerHTML = list.map(r => {
+        const fecha  = new Date(r.fechaEmision).toLocaleString('es-GT');
+        const doctor = `Dr. ${r.doctor?.usuario?.nombre||''} ${r.doctor?.usuario?.apellido||''}`.trim();
+        const detalles = (r.detalles || []).map(d => {
+          // ── FIX: usar NombreLibre cuando no hay medicamento de catálogo ──
+          const esCatalogo = d.medicamento?.nombre;
+          const nombre     = esCatalogo || d.nombreLibre || 'Medicamento';
+          const badgeLibre = !esCatalogo && d.nombreLibre
+            ? `<span class="badge-libre">texto libre</span>` : '';
+          const detalleStr = [
+            d.cantidad ? `Cant. ${d.cantidad}` : null,
+            d.dosis        || null,
+            d.frecuencia   || null,
+            d.duracion     || null,
+          ].filter(Boolean).join(' · ');
+
+          return `<div class="med-item">
+            <span class="med-icon">💊</span>
+            <div>
+              <div class="med-nombre ${esCatalogo ? '' : 'libre'}">${nombre}${badgeLibre}</div>
+              ${detalleStr ? `<div class="med-detail">${detalleStr}</div>` : ''}
+            </div>
+          </div>`;
+        }).join('');
+
+        return `<div class="receta-card">
+          <div class="receta-header">
+            <div>
+              <div class="receta-doctor">${doctor}</div>
+              <div class="receta-meta">${fecha}</div>
+            </div>
+            <span class="receta-num">Receta #${r.recetaId}</span>
+          </div>
+          ${r.observaciones
+            ? `<div class="receta-obs">📝 ${r.observaciones}</div>` : ''}
+          <div class="med-list">${detalles || '<p style="color:var(--muted);font-size:0.82rem">Sin medicamentos registrados.</p>'}</div>
+        </div>`;
+      }).join('');
+    })
+    .catch(e => {
+      document.getElementById('cont').innerHTML =
+        `<p style="color:#f87171;padding:2rem">No se pudieron cargar las recetas. (${e.message})</p>`;
+    });
+}
+</script>
+</body>
+</html>

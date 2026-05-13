@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recetas — Clínica Médica</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=DM+Sans:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script src="auth.js"></script>
+  <style>
+    :root {
+      --teal: #0fa8a0;
+      --teal-dark: #0a7a75;
+      --teal-glow: rgba(15, 168, 160, 0.2);
+      --bg: #080f14;
+      --surface: #0e1a22;
+      --surface2: #152130;
+      --border: rgba(15, 168, 160, 0.15);
+      --border2: rgba(255, 255, 255, 0.06);
+      --text: #e8f4f3;
+      --muted: #6a9a96;
+      --sidebar-w: 240px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-box {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .logo-text small {
+      display: block;
+      font-size: 0.65rem;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+    }
+
+    .nav-section {
+      padding: 1rem 0.75rem 0.5rem;
+    }
+
+    .nav-label {
+      font-size: 0.65rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.65rem 0.75rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.88rem;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 2px;
+    }
+
+    .nav-item:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: rgba(15, 168, 160, 0.15);
+      color: var(--teal);
+    }
+
+    .nav-item svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.6rem;
+      border-radius: 10px;
+      background: var(--surface2);
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role {
+      font-size: 0.7rem;
+      color: var(--teal);
+    }
+
+    .btn-logout {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      color: #f87171;
+    }
+
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 2rem;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+
+    .hint {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .box {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 1rem;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.65rem 0.8rem;
+      border-bottom: 1px solid var(--border2);
+      color: var(--muted);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    td {
+      padding: 0.7rem 0.8rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      vertical-align: top;
+    }
+
+    tr:last-child td {
+      border: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .med-tag {
+      display: inline-block;
+      background: rgba(15, 168, 160, 0.1);
+      border: 1px solid rgba(15, 168, 160, 0.2);
+      color: var(--teal);
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 8px;
+      margin: 2px 2px 2px 0;
+    }
+
+    .med-tag.libre {
+      background: rgba(168, 85, 247, 0.1);
+      border-color: rgba(168, 85, 247, 0.2);
+      color: #c084fc;
+    }
+
+    .btn-ver {
+      background: rgba(15, 168, 160, 0.12);
+      color: var(--teal);
+      border: 1px solid rgba(15, 168, 160, 0.25);
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-ver:hover {
+      background: rgba(15, 168, 160, 0.2);
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(6px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay.show {
+      display: flex;
+    }
+
+    .rx-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .rx-modal-header {
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid var(--border2);
+      background: var(--surface2);
+      border-radius: 20px 20px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .rx-modal-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .rx-modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .rx-modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border2);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .btn-close-rx {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    .btn-close-rx:hover {
+      color: var(--text);
+    }
+
+    .btn-cancel-rx {
+      background: none;
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      padding: 0.55rem 1.1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .btn-imprimir-rx {
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      color: white;
+      border: none;
+      padding: 0.55rem 1.2rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    /* Diseño de la receta imprimible */
+    .rx-card {
+      background: white;
+      color: #111;
+      border-radius: 10px;
+      padding: 1.5rem;
+      font-family: Arial, sans-serif;
+    }
+
+    .rx-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #0a7a75;
+      padding-bottom: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .rx-clinic-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0a7a75;
+    }
+
+    .rx-clinic-sub {
+      font-size: 0.72rem;
+      color: #555;
+      margin-top: 2px;
+    }
+
+    .rx-num-badge {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #0a7a75;
+      text-align: right;
+    }
+
+    .rx-num-fecha {
+      font-size: 0.7rem;
+      color: #777;
+      margin-top: 2px;
+    }
+
+    .rx-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.4rem 1.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .rx-info-lbl {
+      font-size: 0.67rem;
+      text-transform: uppercase;
+      color: #666;
+      letter-spacing: 0.5px;
+    }
+
+    .rx-meds-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #555;
+      border-top: 1px solid #ddd;
+      padding-top: 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .rx-med-row {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.8rem;
+    }
+
+    .rx-med-n {
+      color: #0a7a75;
+      font-weight: 700;
+      min-width: 16px;
+    }
+
+    .rx-med-nombre {
+      font-weight: 600;
+    }
+
+    .rx-med-libre {
+      color: #6b21a8;
+    }
+
+    .rx-med-det {
+      font-size: 0.72rem;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .rx-obs {
+      background: #f5f5f5;
+      border-left: 3px solid #0a7a75;
+      padding: 0.4rem 0.7rem;
+      font-size: 0.78rem;
+      color: #333;
+      margin-top: 0.6rem;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .rx-firma {
+      margin-top: 1.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid #ddd;
+      display: flex;
+      justify-content: flex-end;
+      font-size: 0.75rem;
+      color: #555;
+    }
+
+    .badge-teal {
+      background: rgba(15, 168, 160, 0.1);
+      color: var(--teal);
+      border: 1px solid rgba(15, 168, 160, 0.2);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="main">
+    <div class="page-title">Recetas emitidas</div>
+    <p class="hint">Listado de las últimas 300 recetas. Los medicamentos de texto libre (sin stock) aparecen en morado.
+    </p>
+    <div class="box" id="cont">Cargando...</div>
+  </main>
+
+  <!-- Modal receta imprimible -->
+  <div class="overlay" id="overlayRx">
+    <div class="rx-modal">
+      <div class="rx-modal-header">
+        <div class="rx-modal-title">📋 Detalle de Receta</div>
+        <button class="btn-close-rx" onclick="cerrarRx()">✕</button>
+      </div>
+      <div class="rx-modal-body" id="rxContent"></div>
+      <div class="rx-modal-footer">
+        <button class="btn-cancel-rx" onclick="cerrarRx()">Cerrar</button>
+        <button class="btn-imprimir-rx" onclick="imprimirRx()">🖨 Imprimir / PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    AUTH.guard(['Administrador', 'Admin', 'Recepcionista', 'Doctor']);
+    AUTH.initSidebar('recetas-internas.html');
+
+    const API = 'http://localhost:5190/api';
+    const headers = AUTH.headers();
+    let _lista = [];
+
+    async function cargarRecetas() {
+      const cont = document.getElementById('cont');
+      try {
+        const resRec = await fetch(`${API}/recetas`, { headers });
+        if (!resRec.ok) throw new Error(`HTTP ${resRec.status}`);
+        _lista = await resRec.json();
+
+        if (!Array.isArray(_lista) || _lista.length === 0) {
+          cont.innerHTML = '<p style="color:var(--muted);padding:1rem">Sin recetas aún.</p>';
+          return;
+        }
+
+        cont.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Paciente</th>
+            <th>Doctor</th>
+            <th>Medicamentos</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${_lista.map((rec, idx) => {
+          const detalles = rec.detalles || [];
+          const tags = detalles.map(d => {
+            const esCatalogo = d.medicamento?.nombre;
+            const nombre = esCatalogo || d.nombreLibre || '—';
+            const cls = esCatalogo ? '' : 'libre';
+            return `<span class="med-tag ${cls}">${nombre}</span>`;
+          }).join('');
+
+          return `<tr>
+              <td><span class="badge-teal">#${rec.recetaId}</span></td>
+              <td style="white-space:nowrap">${new Date(rec.fechaEmision).toLocaleString('es-GT')}</td>
+              <td>${rec.paciente?.usuario?.nombre || '—'} ${rec.paciente?.usuario?.apellido || ''}</td>
+              <td>Dr. ${rec.doctor?.usuario?.apellido || '—'}</td>
+              <td style="max-width:280px">${tags || '<span style="color:var(--muted)">Sin detalles</span>'}</td>
+              <td>
+                <button class="btn-ver" onclick="verReceta(${idx})">
+                  👁 Ver receta
+                </button>
+              </td>
+            </tr>`;
+        }).join('')}
+        </tbody>
+      </table>`;
+      } catch (e) {
+        console.error(e);
+        cont.innerHTML = `
+      <p style="color:#f87171;margin-bottom:0.5rem">No se pudieron cargar las recetas. (${e.message})</p>
+      <p style="color:var(--muted);font-size:0.85rem">
+        Revisa que la API esté activa en <strong>localhost:5190</strong> y que el token siga válido.
+      </p>`;
+      }
+    }
+
+    function verReceta(idx) {
+      const rec = _lista[idx];
+      if (!rec) return;
+      const doctor = `Dr. ${rec.doctor?.usuario?.nombre || ''} ${rec.doctor?.usuario?.apellido || ''}`.trim();
+      const paciente = `${rec.paciente?.usuario?.nombre || ''} ${rec.paciente?.usuario?.apellido || ''}`.trim();
+      const fecha = new Date(rec.fechaEmision).toLocaleString('es-GT');
+      const detalles = rec.detalles || [];
+
+      const medsHTML = detalles.map((d, i) => {
+        const esCatalogo = d.medicamento?.nombre;
+        const nombre = esCatalogo || d.nombreLibre || 'Medicamento';
+        const det = [
+          d.cantidad ? `Cant. ${d.cantidad}` : null,
+          d.dosis ? `Dosis: ${d.dosis}` : null,
+          d.frecuencia ? `Frecuencia: ${d.frecuencia}` : null,
+          d.duracion ? `Duración: ${d.duracion}` : null,
+        ].filter(Boolean).join(' · ');
+        return `<div class="rx-med-row">
+          <div class="rx-med-n">${i + 1}.</div>
+          <div>
+            <div class="rx-med-nombre ${esCatalogo ? '' : 'rx-med-libre'}">${nombre}</div>
+            ${det ? `<div class="rx-med-det">${det}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+
+      document.getElementById('rxContent').innerHTML = `
+        <div class="rx-card" id="rxPrint">
+          <div class="rx-header">
+            <div>
+              <div class="rx-clinic-name">🏥 Clínica Médica</div>
+              <div class="rx-clinic-sub">Sistema de Gestión Clínica · Guatemala</div>
+            </div>
+            <div>
+              <div class="rx-num-badge">Receta #${rec.recetaId}</div>
+              <div class="rx-num-fecha">${fecha}</div>
+            </div>
+          </div>
+          <div class="rx-info-grid">
+            <div><div class="rx-info-lbl">Paciente</div><div style="font-weight:600">${paciente || '—'}</div></div>
+            <div><div class="rx-info-lbl">Médico</div><div>${doctor}</div></div>
+          </div>
+          <div class="rx-meds-title">Medicamentos prescritos</div>
+          ${medsHTML || '<p style="color:#666;font-size:0.8rem">Sin medicamentos registrados.</p>'}
+          ${rec.observaciones ? `<div class="rx-obs">📝 ${rec.observaciones}</div>` : ''}
+          <div class="rx-firma">
+            <div style="text-align:right">
+              <div style="border-top:1px solid #aaa;width:180px;padding-top:4px;margin-top:2rem">${doctor}</div>
+              <div style="font-size:0.7rem;color:#888">Firma del médico</div>
+            </div>
+          </div>
+        </div>`;
+
+      document.getElementById('overlayRx').classList.add('show');
+    }
+
+    function cerrarRx() {
+      document.getElementById('overlayRx').classList.remove('show');
+    }
+
+    function imprimirRx() {
+      const contenido = document.getElementById('rxPrint')?.outerHTML;
+      if (!contenido) return;
+      const v = window.open('', '_blank', 'width=620,height=720');
+      v.document.write(`<!DOCTYPE html><html><head><title>Receta Médica</title>
+        <style>
+          body{font-family:Arial,sans-serif;padding:1.5rem;background:#fff;color:#111;}
+          .rx-card{max-width:520px;margin:0 auto;}
+          .rx-header{display:flex;justify-content:space-between;border-bottom:2px solid #0a7a75;padding-bottom:.75rem;margin-bottom:1rem;}
+          .rx-clinic-name{font-size:1rem;font-weight:700;color:#0a7a75;}
+          .rx-clinic-sub{font-size:.72rem;color:#555;}
+          .rx-num-badge{font-size:.88rem;font-weight:700;color:#0a7a75;text-align:right;}
+          .rx-num-fecha{font-size:.7rem;color:#777;}
+          .rx-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem 1.5rem;margin-bottom:.75rem;font-size:.8rem;}
+          .rx-info-lbl{font-size:.67rem;text-transform:uppercase;color:#666;letter-spacing:.5px;}
+          .rx-meds-title{font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:#555;border-top:1px solid #ddd;padding-top:.5rem;margin-bottom:.4rem;}
+          .rx-med-row{display:flex;gap:.5rem;padding:.35rem 0;border-bottom:1px solid #f0f0f0;font-size:.8rem;}
+          .rx-med-n{color:#0a7a75;font-weight:700;min-width:16px;}
+          .rx-med-nombre{font-weight:600;}
+          .rx-med-libre{color:#6b21a8;}
+          .rx-med-det{font-size:.72rem;color:#666;margin-top:2px;}
+          .rx-obs{background:#f5f5f5;border-left:3px solid #0a7a75;padding:.4rem .7rem;font-size:.78rem;color:#333;margin-top:.6rem;}
+          .rx-firma{margin-top:1.5rem;padding-top:.5rem;border-top:1px solid #ddd;display:flex;justify-content:flex-end;font-size:.75rem;color:#555;}
+        </style>
+      </head><body>${contenido}</body></html>`);
+      v.document.close();
+      setTimeout(() => v.print(), 500);
+    }
+
+    cargarRecetas();
+  </script>
+</body>
+
+</html>

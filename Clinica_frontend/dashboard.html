@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Clínica Médica</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="auth.js"></script>
+<style>
+  :root{--teal:#0fa8a0;--teal-dark:#0a7a75;--teal-glow:rgba(15,168,160,0.2);--bg:#080f14;--surface:#0e1a22;--surface2:#152130;--surface3:#1c2e3e;--border:rgba(15,168,160,0.15);--border2:rgba(255,255,255,0.06);--text:#e8f4f3;--muted:#6a9a96;--sidebar-w:240px;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;overflow:hidden;}
+  .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;}
+  .sidebar-logo{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .logo-box{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 15px var(--teal-glow);}
+  .logo-text{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;line-height:1.2;}
+  .logo-text small{display:block;font-size:0.65rem;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400;}
+  .nav-section{padding:1rem 0.75rem 0.5rem;}
+  .nav-label{font-size:0.65rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:0 0.75rem;margin-bottom:0.4rem;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:0.65rem 0.75rem;border-radius:10px;cursor:pointer;transition:all 0.2s;font-size:0.88rem;color:var(--muted);text-decoration:none;margin-bottom:2px;}
+  .nav-item:hover{background:var(--surface2);color:var(--text);}
+  .nav-item.active{background:rgba(15,168,160,0.15);color:var(--teal);}
+  .nav-item svg{width:18px;height:18px;flex-shrink:0;}
+  .sidebar-footer{margin-top:auto;padding:1rem;border-top:1px solid var(--border);}
+  .user-card{display:flex;align-items:center;gap:10px;padding:0.6rem;border-radius:10px;background:var(--surface2);}
+  .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal-dark));display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:600;flex-shrink:0;}
+  .user-info{flex:1;min-width:0;}
+  .user-name{font-size:0.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .user-role{font-size:0.7rem;color:var(--teal);}
+  .btn-logout{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.75rem;padding:4px 8px;border-radius:6px;transition:all 0.2s;}
+  .btn-logout:hover{color:#f87171;background:rgba(248,113,113,0.1);}
+  .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+  .topbar{padding:1.2rem 2rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:50;}
+  .page-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;}
+  .topbar-right{display:flex;align-items:center;gap:1rem;}
+  .date-badge{font-size:0.78rem;color:var(--muted);background:var(--surface2);padding:6px 12px;border-radius:8px;border:1px solid var(--border);}
+  .role-badge{font-size:0.7rem;padding:4px 10px;border-radius:20px;font-weight:500;}
+  .role-Administrador,.role-Admin{background:rgba(168,85,247,0.15);color:#c084fc;}
+  .role-Doctor{background:rgba(15,168,160,0.15);color:var(--teal);}
+  .role-Paciente{background:rgba(59,130,246,0.15);color:#60a5fa;}
+  .role-Recepcionista{background:rgba(245,158,11,0.15);color:#f59e0b;}
+  .content{padding:2rem;flex:1;overflow-y:auto;}
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+  .stat-card{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:1.5rem;position:relative;overflow:hidden;transition:transform 0.2s,border-color 0.2s;animation:fadeIn 0.5s ease both;}
+  .stat-card:hover{transform:translateY(-3px);border-color:var(--border);}
+  .stat-card::before{content:'';position:absolute;top:0;right:0;width:80px;height:80px;border-radius:50%;opacity:0.08;}
+  .stat-card.c1::before{background:var(--teal);}
+  .stat-card.c2::before{background:#3b82f6;}
+  .stat-card.c3::before{background:#a855f7;}
+  .stat-card.c4::before{background:#f59e0b;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+  .stat-card:nth-child(1){animation-delay:0.1s}
+  .stat-card:nth-child(2){animation-delay:0.2s}
+  .stat-card:nth-child(3){animation-delay:0.3s}
+  .stat-card:nth-child(4){animation-delay:0.4s}
+  .stat-label{font-size:0.75rem;color:var(--muted);letter-spacing:0.5px;margin-bottom:0.5rem;}
+  .stat-value{font-family:'Syne',sans-serif;font-size:2rem;font-weight:700;line-height:1;}
+  .stat-icon{position:absolute;top:1.2rem;right:1.2rem;font-size:1.5rem;opacity:0.6;}
+  .stat-sub{font-size:0.75rem;margin-top:0.5rem;color:var(--muted);}
+  .grid-2{display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+  .grid-equal{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border2);border-radius:16px;overflow:hidden;}
+  .panel-header{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;}
+  .panel-title{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:600;}
+  .panel-link{font-size:0.78rem;color:var(--teal);text-decoration:none;cursor:pointer;transition:opacity 0.2s;}
+  .panel-link:hover{opacity:0.7;}
+  .panel-body{padding:1rem 1.5rem;}
+  table{width:100%;border-collapse:collapse;}
+  th{font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:left;padding:0.5rem 0.75rem;border-bottom:1px solid var(--border2);}
+  td{padding:0.75rem;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.85rem;}
+  tr:last-child td{border:none;}
+  tr:hover td{background:rgba(255,255,255,0.02);}
+  .badge{padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:500;display:inline-block;}
+  .badge-green{background:rgba(52,211,153,0.15);color:#34d399;}
+  .badge-yellow{background:rgba(245,158,11,0.15);color:#f59e0b;}
+  .badge-red{background:rgba(248,113,113,0.15);color:#f87171;}
+  .badge-teal{background:rgba(15,168,160,0.15);color:var(--teal);}
+  .badge-blue{background:rgba(59,130,246,0.15);color:#60a5fa;}
+  .doctor-item{display:flex;align-items:center;gap:10px;padding:0.65rem 0;border-bottom:1px solid var(--border2);}
+  .doctor-item:last-child{border:none;}
+  .doc-avatar{width:34px;height:34px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .doc-info{flex:1;}
+  .doc-name{font-size:0.85rem;font-weight:500;}
+  .doc-spec{font-size:0.72rem;color:var(--muted);}
+  .status-indicator{width:9px;height:9px;border-radius:50%;}
+  .status-green{background:#34d399;box-shadow:0 0 6px rgba(52,211,153,0.5);}
+  .status-yellow{background:#f59e0b;box-shadow:0 0 6px rgba(245,158,11,0.5);}
+  .status-red{background:#f87171;box-shadow:0 0 6px rgba(248,113,113,0.5);}
+  .quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}
+  .qa-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:1rem;cursor:pointer;transition:all 0.2s;text-align:center;text-decoration:none;color:var(--text);display:block;}
+  .qa-btn:hover{border-color:var(--teal);background:rgba(15,168,160,0.08);}
+  .qa-icon{font-size:1.4rem;margin-bottom:6px;}
+  .qa-label{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+  .welcome-banner{background:linear-gradient(135deg,rgba(15,168,160,0.15),rgba(10,122,117,0.1));border:1px solid var(--border);border-radius:16px;padding:1.5rem 2rem;margin-bottom:2rem;display:flex;align-items:center;justify-content:space-between;}
+  .welcome-text h2{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:4px;}
+  .welcome-text p{font-size:0.85rem;color:var(--muted);}
+  /* Elementos ocultos por rol */
+  .only-admin,.only-admin-recep{display:none;}
+  .only-doctor{display:none;}
+  .only-paciente{display:none;}
+</style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><div class="logo-box">🏥</div><div class="logo-text">Clínica Médica<small>Panel de Control</small></div></div>
+  <div class="nav-section" id="navPrincipal">
+    <div class="nav-label">Principal</div>
+    <a href="dashboard.html" class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+    <a href="citas.html" class="nav-item" id="navCitas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Citas</a>
+    <a href="pacientes.html" class="nav-item" id="navPacientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Pacientes</a>
+    <a href="doctores.html" class="nav-item" id="navDoctores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 1 0 0 10A5 5 0 0 0 12 2z"/><path d="M20 22a8 8 0 0 0-16 0"/><line x1="12" y1="15" x2="12" y2="19"/><line x1="10" y1="17" x2="14" y2="17"/></svg>Doctores</a>
+  </div>
+  <div class="nav-section" id="navGestion">
+    <div class="nav-label">Gestión</div>
+    <a href="medicamentos.html" class="nav-item" id="navMeds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><path d="m22 22-1.5-1.5"/><path d="M10.5 20H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H20a2 2 0 0 1 2 2v3"/></svg>Medicamentos</a>
+    <a href="pagos.html" class="nav-item" id="navPagos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Pagos</a>
+    <a href="facturacion.html" class="nav-item" id="navFacturas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Facturación</a>
+  </div>
+  <div class="sidebar-footer"><div class="user-card"><div class="avatar" id="avatarInit">A</div><div class="user-info"><div class="user-name" id="userName">Cargando...</div><div class="user-role" id="userRole">—</div></div><button class="btn-logout" onclick="logout()" title="Cerrar sesión">↩</button></div></div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Dashboard</div>
+    <div class="topbar-right">
+      <span class="role-badge" id="roleBadge"></span>
+      <div class="date-badge" id="dateDisplay"></div>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- Bienvenida personalizada -->
+    <div class="welcome-banner">
+      <div class="welcome-text">
+        <h2 id="welcomeTitle">Bienvenido</h2>
+        <p id="welcomeSub">Cargando información...</p>
+      </div>
+    </div>
+
+    <!-- STATS — varían por rol -->
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <!-- CONTENIDO ADMIN / RECEPCIONISTA -->
+    <div id="viewAdminRecep" style="display:none">
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Citas Recientes</span><a href="citas.html" class="panel-link">Ver todas →</a></div>
+          <div class="panel-body" style="padding:0"><table><thead><tr><th>Paciente</th><th>Doctor</th><th>Fecha</th><th>Estado</th></tr></thead><tbody id="tableCitas"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem">Cargando...</td></tr></tbody></table></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Estado Médicos</span><a href="doctores.html" class="panel-link">Ver todos →</a></div>
+          <div class="panel-body" id="doctorStatus"><div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:1rem">Cargando...</div></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Stock Bajo — Medicamentos</span><a href="medicamentos.html" class="panel-link">Gestionar →</a></div>
+          <div class="panel-body" style="padding:0"><table><thead><tr><th>Medicamento</th><th>Presentación</th><th>Stock</th></tr></thead><tbody id="tableMeds"><tr><td colspan="3" style="text-align:center;color:var(--muted);padding:2rem">Cargando...</td></tr></tbody></table></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Acciones Rápidas</span></div>
+          <div class="panel-body">
+            <div class="quick-actions" id="quickActions"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENIDO DOCTOR -->
+    <div id="viewDoctor" style="display:none">
+      <div class="grid-equal">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Mis Citas de Hoy</span><a href="citas.html" class="panel-link">Ver todas →</a></div>
+          <div class="panel-body" style="padding:0"><table><thead><tr><th>Paciente</th><th>Hora</th><th>Motivo</th><th>Estado</th></tr></thead><tbody id="tableCitasDoctor"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem">Cargando...</td></tr></tbody></table></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Acciones Rápidas</span></div>
+          <div class="panel-body">
+            <div class="quick-actions">
+              <a href="citas.html" class="qa-btn"><div class="qa-icon">📅</div><div style="font-size:0.85rem;font-weight:500">Ver Citas</div><div class="qa-label">Mis citas pendientes</div></a>
+              <a href="registro-medico.html" class="qa-btn" style="display:none" id="qaRegistroMedico"><div class="qa-icon">👨‍⚕️</div><div style="font-size:0.85rem;font-weight:500">Consulta</div><div class="qa-label">Registrar consulta</div></a>
+              <a href="pacientes.html" class="qa-btn"><div class="qa-icon">👤</div><div style="font-size:0.85rem;font-weight:500">Pacientes</div><div class="qa-label">Ver mis pacientes</div></a>
+              <a href="medicamentos.html" class="qa-btn"><div class="qa-icon">💊</div><div style="font-size:0.85rem;font-weight:500">Medicamentos</div><div class="qa-label">Consultar catálogo</div></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENIDO PACIENTE -->
+    <div id="viewPaciente" style="display:none">
+      <div class="grid-equal">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Mis Próximas Citas</span></div>
+          <div class="panel-body" style="padding:0"><table><thead><tr><th>Doctor</th><th>Fecha</th><th>Motivo</th><th>Estado</th></tr></thead><tbody id="tableCitasPaciente"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem">Cargando...</td></tr></tbody></table></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Mis Pagos Recientes</span></div>
+          <div class="panel-body" style="padding:0"><table><thead><tr><th>Fecha</th><th>Método</th><th>Monto</th><th>Estado</th></tr></thead><tbody id="tablePagosPaciente"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem">Cargando...</td></tr></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+AUTH.guard();
+AUTH.initSidebar('dashboard.html');
+const API = 'http://localhost:5190/api';
+const headers = AUTH.headers();
+const nombre   = AUTH.nombre();
+const apellido = AUTH.apellido();
+const rol      = AUTH.rol();
+const doctorId  = AUTH.doctorId();
+const pacienteId = AUTH.pacienteId();
+
+// ── Setup de UI base ───────────────────────────────────────────
+
+
+
+document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('es-GT', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+const roleBadge = document.getElementById('roleBadge');
+roleBadge.textContent = rol;
+roleBadge.className = `role-badge role-${rol}`;
+
+// ── Nav: lo arma auth.js (buildSidebar) según rol; no tocar elementos por id (el sidebar dinámico no los tiene).
+function configurarNav() {}
+
+// ── Cargar datos según rol ─────────────────────────────────────
+async function loadDashboard() {
+  configurarNav();
+
+  if (rol === 'Administrador' || rol === 'Admin' || rol === 'Recepcionista') {
+    await loadAdminView();
+  } else if (rol === 'Doctor') {
+    await loadDoctorView();
+  } else if (rol === 'Paciente') {
+    await loadPacienteView();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// VISTA ADMIN / RECEPCIONISTA
+// ─────────────────────────────────────────────────────────────
+async function loadAdminView() {
+  document.getElementById('viewAdminRecep').style.display = 'block';
+  document.getElementById('welcomeTitle').textContent = `Hola, ${nombre} 👋`;
+  document.getElementById('welcomeSub').textContent = (rol === 'Administrador' || rol === 'Admin')
+    ? 'Tienes acceso completo al sistema.'
+    : 'Panel de recepción — gestión de citas y pagos.';
+
+  try {
+    const res = await fetch(`${API}/dashboard/resumen`, { headers });
+    if (!res.ok) throw new Error('Error al cargar el dashboard');
+    const data = await res.json();
+
+    // Stats
+    const esAdmin = rol === 'Administrador' || rol === 'Admin';
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card c1"><div class="stat-icon">📅</div><div class="stat-label">Citas Hoy</div><div class="stat-value">${data.stats.citasHoy}</div><div class="stat-sub">Total agendadas</div></div>
+      <div class="stat-card c2"><div class="stat-icon">👥</div><div class="stat-label">Total Pacientes</div><div class="stat-value">${data.stats.totalPacientes}</div><div class="stat-sub">Registrados</div></div>
+      <div class="stat-card c3"><div class="stat-icon">👨‍⚕️</div><div class="stat-label">Doctores</div><div class="stat-value">${data.stats.totalDoctores}</div><div class="stat-sub">En el sistema</div></div>
+      ${esAdmin
+        ? `<div class="stat-card c4"><div class="stat-icon">💰</div><div class="stat-label">Ingresos del Mes</div><div class="stat-value">Q${data.stats.ingresosMes.toFixed(0)}</div><div class="stat-sub">Facturas pagadas</div></div>`
+        : `<div class="stat-card c4"><div class="stat-icon">💊</div><div class="stat-label">Medicamentos</div><div class="stat-value">${data.stats.totalMedicamentos}</div><div class="stat-sub" style="color:${data.stats.medsStockBajo>0?'#f87171':'#34d399'}">${data.stats.medsStockBajo} con stock bajo</div></div>`
+      }`;
+
+    // Tabla de citas
+    const tbody = document.getElementById('tableCitas');
+    tbody.innerHTML = data.citasRecientes.length
+      ? data.citasRecientes.map(c => `
+        <tr>
+          <td>${c.paciente?.nombre||'—'} ${c.paciente?.apellido||''}</td>
+          <td>Dr. ${c.doctor?.apellido||'—'}</td>
+          <td>${new Date(c.fechaHora).toLocaleDateString('es-GT')}</td>
+          <td><span class="badge ${badgeCls(c.estado)}">${c.estado}</span></td>
+        </tr>`).join('')
+      : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem">Sin citas</td></tr>';
+
+    // Doctores
+    const divDoc = document.getElementById('doctorStatus');
+    divDoc.innerHTML = data.doctores.length
+      ? data.doctores.map(d => {
+          const est = d.estadoMedico?.estado || 'Disponible';
+          const cls = est==='Disponible'?'status-green':est==='En Consulta'?'status-yellow':'status-red';
+          return `<div class="doctor-item">
+            <div class="doc-avatar">👨‍⚕️</div>
+            <div class="doc-info">
+              <div class="doc-name">Dr. ${d.usuario?.nombre||''} ${d.usuario?.apellido||''}</div>
+              <div class="doc-spec">${d.especialidad?.nombre||'General'}</div>
+            </div>
+            <div class="status-indicator ${cls}" title="${est}"></div>
+          </div>`;
+        }).join('')
+      : '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:1rem">Sin doctores registrados</div>';
+
+    // Meds stock bajo
+    const tbM = document.getElementById('tableMeds');
+    tbM.innerHTML = data.medsStockBajo.length
+      ? data.medsStockBajo.map(m => `
+        <tr>
+          <td>${m.nombre}</td>
+          <td>${m.presentacion||'—'}</td>
+          <td><span class="badge ${m.stock<=3?'badge-red':'badge-yellow'}">${m.stock}</span></td>
+        </tr>`).join('')
+      : '<tr><td colspan="3" style="text-align:center;color:#34d399;padding:2rem">✓ Stock normal</td></tr>';
+
+    // Quick actions según rol
+    const qa = document.getElementById('quickActions');
+    if (rol === 'Administrador' || rol === 'Admin') {
+      qa.innerHTML = `
+        <a href="citas.html" class="qa-btn"><div class="qa-icon">📅</div><div style="font-size:0.85rem;font-weight:500">Nueva Cita</div><div class="qa-label">Agendar consulta</div></a>
+        <a href="pacientes.html" class="qa-btn"><div class="qa-icon">👤</div><div style="font-size:0.85rem;font-weight:500">Pacientes</div><div class="qa-label">Gestionar</div></a>
+        <a href="facturacion.html" class="qa-btn"><div class="qa-icon">🧾</div><div style="font-size:0.85rem;font-weight:500">Facturación</div><div class="qa-label">Emitir facturas</div></a>
+        <a href="medicamentos.html" class="qa-btn"><div class="qa-icon">💊</div><div style="font-size:0.85rem;font-weight:500">Inventario</div><div class="qa-label">Gestionar stock</div></a>`;
+    } else {
+      qa.innerHTML = `
+        <a href="citas.html" class="qa-btn"><div class="qa-icon">📅</div><div style="font-size:0.85rem;font-weight:500">Nueva Cita</div><div class="qa-label">Agendar</div></a>
+        <a href="pacientes.html" class="qa-btn"><div class="qa-icon">👤</div><div style="font-size:0.85rem;font-weight:500">Pacientes</div><div class="qa-label">Registrar</div></a>
+        <a href="pagos.html" class="qa-btn"><div class="qa-icon">💳</div><div style="font-size:0.85rem;font-weight:500">Cobrar</div><div class="qa-label">Registrar pago</div></a>
+        <a href="doctores.html" class="qa-btn"><div class="qa-icon">👨‍⚕️</div><div style="font-size:0.85rem;font-weight:500">Disponibilidad</div><div class="qa-label">Ver doctores</div></a>`;
+    }
+
+  } catch(e) {
+    console.error('Dashboard error:', e);
+    document.getElementById('statsGrid').innerHTML = `<div style="grid-column:1/-1;color:#f87171;padding:1rem">Error al cargar: ${e.message}. Verifica que la API esté corriendo en localhost:5190.</div>`;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// VISTA DOCTOR
+// ─────────────────────────────────────────────────────────────
+async function loadDoctorView() {
+  document.getElementById('viewDoctor').style.display = 'block';
+  document.getElementById('welcomeTitle').textContent = `Dr. ${nombre} ${apellido}`;
+  document.getElementById('welcomeSub').textContent = 'Tus citas y pacientes del día.';
+  document.getElementById('pageTitle').textContent = 'Mi Panel';
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card c1"><div class="stat-icon">📅</div><div class="stat-label">Citas Hoy</div><div class="stat-value" id="sdCitasHoy">—</div><div class="stat-sub">Pendientes</div></div>
+    <div class="stat-card c2"><div class="stat-icon">✅</div><div class="stat-label">Completadas</div><div class="stat-value" id="sdCompletadas">—</div><div class="stat-sub">Este mes</div></div>
+    <div class="stat-card c3"><div class="stat-icon">👤</div><div class="stat-label">Pacientes</div><div class="stat-value" id="sdPacientes">—</div><div class="stat-sub">Atendidos</div></div>
+    <div class="stat-card c4"><div class="stat-icon">📋</div><div class="stat-label">Recetas</div><div class="stat-value" id="sdRecetas">—</div><div class="stat-sub">Este mes</div></div>`;
+
+  if (!doctorId) {
+    document.getElementById('tableCitasDoctor').innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem">No se encontró perfil de doctor.</td></tr>';
+    return;
+  }
+
+  try {
+    // Usar el endpoint de dashboard que ya devuelve todo: stats + citasHoy + recetasRecientes
+    const res = await fetch(`${API}/dashboard/resumen`, { headers });
+    const data = await res.json();
+
+    document.getElementById('sdCitasHoy').textContent    = data.stats.citasHoy;
+    document.getElementById('sdCompletadas').textContent = data.stats.completadasMes;
+    document.getElementById('sdPacientes').textContent   = data.stats.pacientesUnicos;
+    document.getElementById('sdRecetas').textContent     = data.stats.recetasMes; // FIX: antes siempre "—"
+
+    const tb = document.getElementById('tableCitasDoctor');
+    tb.innerHTML = data.citasHoy?.length
+      ? data.citasHoy.map(c => `
+        <tr>
+          <td>${c.paciente?.nombre||'—'} ${c.paciente?.apellido||''}</td>
+          <td>${new Date(c.fechaHora).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'})}</td>
+          <td>${c.motivo||'—'}</td>
+          <td><span class="badge ${badgeCls(c.estado)}">${c.estado}</span></td>
+        </tr>`).join('')
+      : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem">Sin citas para hoy</td></tr>';
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// VISTA PACIENTE
+// ─────────────────────────────────────────────────────────────
+async function loadPacienteView() {
+  document.getElementById('viewPaciente').style.display = 'block';
+  document.getElementById('welcomeTitle').textContent = `Hola, ${nombre} 👋`;
+  document.getElementById('welcomeSub').textContent = 'Tus próximas citas y resumen de pagos.';
+  document.getElementById('pageTitle').textContent = 'Mi Salud';
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card c1"><div class="stat-icon">📅</div><div class="stat-label">Próximas Citas</div><div class="stat-value" id="spProximas">—</div></div>
+    <div class="stat-card c2"><div class="stat-icon">✅</div><div class="stat-label">Citas Realizadas</div><div class="stat-value" id="spRealizadas">—</div></div>
+    <div class="stat-card c3"><div class="stat-icon">💰</div><div class="stat-label">Total Pagado</div><div class="stat-value" id="spPagado">—</div></div>
+    <div class="stat-card c4"><div class="stat-icon">📋</div><div class="stat-label">Recetas</div><div class="stat-value" id="spRecetas">—</div></div>`;
+
+  if (!pacienteId) return;
+
+  try {
+    const [resCitas, resPagos, resRecetas] = await Promise.all([
+      fetch(`${API}/citas/paciente/${pacienteId}`, { headers }),
+      fetch(`${API}/pagos/paciente/${pacienteId}`, { headers }),
+      fetch(`${API}/recetas/paciente/${pacienteId}`, { headers })
+    ]);
+    const citas = await resCitas.json();
+    const pagos = await resPagos.json();
+    const recetas = resRecetas.ok ? await resRecetas.json() : [];
+
+    const ahora = new Date();
+    const proximas = citas.filter(c => new Date(c.fechaHora) > ahora && c.estado !== 'Cancelada');
+    const realizadas = citas.filter(c => c.estado === 'Completada');
+
+    document.getElementById('spProximas').textContent = proximas.length;
+    document.getElementById('spRealizadas').textContent = realizadas.length;
+    document.getElementById('spPagado').textContent = `Q${pagos.reduce((s,p) => s + (p.total||0), 0).toFixed(0)}`;
+    document.getElementById('spRecetas').textContent = Array.isArray(recetas) ? recetas.length : '—';
+
+    const tbC = document.getElementById('tableCitasPaciente');
+    tbC.innerHTML = proximas.length
+      ? proximas.slice(0,6).map(c => `
+        <tr>
+          <td>Dr. ${c.doctor?.usuario?.apellido||'—'}</td>
+          <td>${new Date(c.fechaHora).toLocaleDateString('es-GT')}</td>
+          <td>${c.motivo||'—'}</td>
+          <td><span class="badge ${badgeCls(c.estado)}">${c.estado}</span></td>
+        </tr>`).join('')
+      : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem">Sin citas próximas</td></tr>';
+
+    const tbP = document.getElementById('tablePagosPaciente');
+    tbP.innerHTML = pagos.length
+      ? pagos.slice(0,5).map(p => `
+        <tr>
+          <td>${new Date(p.fechaPago).toLocaleDateString('es-GT')}</td>
+          <td>${p.metodoPago?.nombre||'—'}</td>
+          <td style="color:#34d399;font-weight:600">Q${(p.total||0).toFixed(2)}</td>
+          <td><span class="badge badge-green">${p.estado}</span></td>
+        </tr>`).join('')
+      : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem">Sin pagos</td></tr>';
+  } catch(e) { console.error(e); }
+}
+
+function badgeCls(e) {
+  if(e==='Completada') return 'badge-green';
+  if(e==='Pendiente') return 'badge-yellow';
+  if(e==='Cancelada') return 'badge-red';
+  if(e==='Confirmada') return 'badge-teal';
+  return 'badge-blue';
+}
+
+function logout() { AUTH.logout(); }
+
+// Guardar apellido del login (el backend ya lo devuelve)
+// Asegurar que el login guarda apellido
+loadDashboard();
+</script>
+</body>
+</html>
