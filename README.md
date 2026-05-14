@@ -22,6 +22,7 @@ Sistema web full-stack para la administración completa de una clínica médica.
 
 ### Dashboard
 <img src="screenshots/Dashboard.png" width="100%">
+
 ---
 
 ## ✨ Funcionalidades
