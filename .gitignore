@@ -1,1 +1,5 @@
 appsettings.json
+bin/
+obj/
+_build_check/
+appsettings.Development.json
