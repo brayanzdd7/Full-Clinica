@@ -9,6 +9,21 @@ Sistema web full-stack para la administración completa de una clínica médica.
 
 ---
 
+##  Vista del Sistema
+
+### Backend API — Swagger/OpenAPI
+<img src="screenshots/Swagger.png" width="100%">
+
+### Login
+<img src="screenshots/Login.png" width="100%">
+
+### Inventario
+<img src="screenshots/Inventario.png" width="100%">
+
+### Dashboard
+<img src="screenshots/Dashboard.png" width="100%">
+---
+
 ## ✨ Funcionalidades
 
 - **Autenticación JWT** con 4 roles: Administrador, Doctor, Recepcionista, Paciente
